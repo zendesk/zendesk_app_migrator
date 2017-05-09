@@ -17,7 +17,7 @@ The migrator executes a series of tasks to:
 
 #### App Scaffold
 
-The migrator has a hard dependency on the publuc [App Scaffold](https://github.com/zendesk/app_scaffold) project.
+The migrator has a hard dependency on the public [App Scaffold](https://github.com/zendesk/app_scaffold) project.
 
 ### For development...
 
@@ -40,7 +40,7 @@ Dependencies are declared via `yarn` in the `package.json` file.
 
 `yarn test`
 
-Tests are run using the `mocha` test runner.
+Tests are run using the `mocha` test runner.  `chai` is the assertion library.
 
 ### Deployment
 
