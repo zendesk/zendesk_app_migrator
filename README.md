@@ -1,6 +1,6 @@
 ## Zendesk App Migrator
 
-TODO: Add build statuses
+[![Build Status](https://travis-ci.com/zendesk/zendesk_app_migrator.svg?token=NrEwEcTp68fyVJNwBJNv&branch=master)](https://travis-ci.com/zendesk/zendesk_app_migrator)
 
 ### What is it?
 
