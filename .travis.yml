@@ -1,0 +1,9 @@
+env:
+  - TASK=yarn_test
+language: node_js
+sudo: false
+dist: trusty
+cache:
+  yarn: true
+branches:
+  only: [master]
