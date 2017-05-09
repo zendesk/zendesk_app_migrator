@@ -1,9 +1,8 @@
-env:
-  - TASK=yarn_test
 language: node_js
+node_js:
+  - "7"
 sudo: false
 dist: trusty
-cache:
-  yarn: true
+cache: yarn
 branches:
   only: [master]
