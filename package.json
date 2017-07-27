@@ -14,7 +14,6 @@
   "license": "ISC",
   "dependencies": {
     "app_scaffold": "github:zendesk/app_scaffold",
-    "asynquence": "^0.9.0",
     "chalk": "^1.1.3",
     "co": "^4.6.0",
     "co-prompt": "^1.0.0",
