@@ -1,2 +1,4 @@
 /node_modules
 /tmp
+lib/**/*.js
+lib/**/*.d.ts
