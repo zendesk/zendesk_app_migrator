@@ -27,7 +27,7 @@ describe("marketing only", function() {
     fs.writeJSON("app/manifest.json", {
       marketingOnly: true
     });
-    expect(() => marketingOnly(fs)).to.throw(
+    expect(marketingOnly(fs)).to.eventually.be.rejectedWith(
       Error,
       /"marketingOnly" parameter cannot be true for migration/
     );

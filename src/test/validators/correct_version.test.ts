@@ -27,14 +27,14 @@ describe("correct version", function() {
     fs.writeJSON("app/manifest.json", {
       frameworkVersion: "2.0"
     });
-    expect(() => correctVersion(fs)).to.throw(
+    expect(correctVersion(fs)).to.eventually.be.rejectedWith(
       Error,
       /"frameworkVersion" parameter must be less than 2.0/
     );
   });
 
   it("should raise an exception with no manifest file", function() {
-    expect(() => correctVersion(fs)).to.throw(
+    expect(correctVersion(fs)).to.eventually.be.rejectedWith(
       Error,
       /"frameworkVersion" parameter must be less than 2.0/
     );
