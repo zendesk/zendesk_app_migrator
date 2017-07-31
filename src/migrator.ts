@@ -72,8 +72,10 @@ class Migrator {
     this.appDir = appDir;
     this.dryRun = dryRun;
     if (steps.length) {
-      const userSteps = steps.split(",");
-      this.steps = Migrator.steps.filter(step => userSteps.includes(step));
+      const userSteps = steps.toLowerCase().split(",");
+      this.steps = Migrator.steps.filter(step =>
+        userSteps.find(s => step.toLowerCase().indexOf(s) >= 0)
+      );
     } else {
       this.steps = Migrator.steps.slice();
     }
