@@ -21,7 +21,7 @@ The migrator has a hard dependency on the public [App Scaffold](https://github.c
 
 ### For development...
 
-Source files are under `lib`, test files under `test`.  The codebase currently makes use of ES6 features enabled by the `--harmony` flag.
+Source files are under `src`, test files under `src/test`.  The codebase currently makes use of ES6 features by way of the Typescript compiler.  To that end, all of the source code is written in Typescript.  An added bonus is that the package will ship with type declarations alongside the Javascript.
 
 #### Setting up your dev environment
 
@@ -36,11 +36,25 @@ You will need:
 
 Dependencies are declared via `yarn` in the `package.json` file.
 
+#### Testing the CLI
+
+Optionally install `ts-node` and `typescript` globally, like `npm install -g ts-node typescript`.
+
+Run `ts-node src/index.ts migrate --path ~/path/to/v1/app/source`
+
+If not installing `ts-node` and `typescript` globally, reference the local versions of those packages like `./node_modules/.bin/ts-node src/index.ts migrate --path ~/path/to/v1/app/source`
+
 #### Running tests
 
 `yarn test`
 
 Tests are run using the `mocha` test runner.  `chai` is the assertion library.
+
+#### Other scripts
+
+- `yarn test-watch`
+- `yarn build`
+- `yarn build-watch`
 
 ### Deployment
 
