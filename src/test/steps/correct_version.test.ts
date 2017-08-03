@@ -12,7 +12,7 @@ describe("correct version", () => {
 
   before(() => {
     editor = fsEditor.create(memFs.create());
-    options = fromJS({ editor });
+    options = fromJS({ src: "v1", editor });
   });
 
   afterEach(() => {
