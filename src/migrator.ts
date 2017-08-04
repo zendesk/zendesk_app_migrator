@@ -1,5 +1,4 @@
 import "es6-promise/auto";
-import { snakeCase } from "lodash";
 import * as fs from "fs";
 import * as path from "path";
 import * as chalk from "chalk";
@@ -19,22 +18,22 @@ class Migrator {
   static tmpDir = path.resolve(__dirname, "../tmp");
 
   static steps: List<string> = List([
-    "correctVersion",
-    "marketingOnly",
-    "requirementsOnly",
+    "correct_version",
+    "marketing_only",
+    "requirements_only",
 
-    "setupAppScaffold",
+    "setup_app_scaffold",
 
-    "migrateAppJs",
-    "migrateAppCss",
-    "migrateCommonJs",
-    "migrateTemplates",
-    "migrateTranslations",
-    "migrateImages",
-    "migrateManifest",
+    "migrate_app_js",
+    "migrate_app_css",
+    "migrate_common_js",
+    "migrate_templates",
+    "migrate_translations",
+    "migrate_images",
+    "migrate_manifest",
 
-    "commitChanges",
-    "runScripts"
+    "commit_changes",
+    "run_scripts"
   ]);
 
   constructor() {
@@ -58,8 +57,8 @@ class Migrator {
       // console.log(chalk.bold.gray.underline(`Starting step: ${stepName}`));
       // FIXME: Work out why dynamic imports aren't working in the downlevel
       // https://blogs.msdn.microsoft.com/typescript/2017/06/27/announcing-typescript-2-4/
-      const step = require(`./steps/${snakeCase(stepName)}`).default;
-      // const step = await import(`./steps/${snakeCase(stepName)}`);
+      const step = require(`./steps/${stepName}`).default;
+      // const step = await import(`./steps/${stepName}`);
       const newOptions = await step(options);
       options = options.merge(newOptions);
       yield options;
