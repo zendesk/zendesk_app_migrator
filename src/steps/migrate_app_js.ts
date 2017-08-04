@@ -33,16 +33,7 @@ export default async (options: Map<string, any>) => {
   if (topLevelReturnStatementPath) {
     const iifePath = topLevelReturnStatementPath.parent.parent.parent.parent;
     if (n.ExpressionStatement.assert(iifePath.node)) {
-      // Create a new code structure that assigns the result of calling the IIFE
-      // to the new MigratedApp constant
-      const newNode = b.variableDeclaration("const", [
-        b.variableDeclarator(
-          b.identifier("MigratedApp"),
-          iifePath.node.expression
-        )
-      ]);
-
-      ast.program = b.program([newNode]);
+      ast.program = b.program([iifePath.node]);
     }
   }
 
