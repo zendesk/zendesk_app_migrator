@@ -33,6 +33,7 @@ class Migrator {
     "migrate_manifest",
 
     "commit_changes",
+
     "run_scripts"
   ]);
 
@@ -40,11 +41,10 @@ class Migrator {
     this.progressBar = new ProgressBar(
       ` [:bar] ${chalk.bold(":current/:total")} steps complete`,
       {
-        total: Migrator.steps.size,
+        total: Migrator.steps.size - 1, // FIXME: run_scripts has it's own output
         complete: chalk.bold.green("="),
         incomplete: chalk.green("-"),
-        width: 20,
-        clear: true
+        width: 20
       }
     );
   }
@@ -86,8 +86,13 @@ class Migrator {
     // Iterate asynchronously through the steps,
     // passing the resulting options object from each step
     // into the next step
-    for await (const newOptions of migratr.perform(options)) {
-      migratr.progressBar.tick();
+    try {
+      for await (const newOptions of migratr.perform(options)) {
+        if (!migratr.progressBar.complete) migratr.progressBar.tick();
+      }
+    } catch (err) {
+      migratr.progressBar.interrupt(chalk.bold.red(err.message));
+      throw err;
     }
   }
 }

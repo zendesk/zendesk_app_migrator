@@ -5,7 +5,8 @@
     "importHelpers": true,
     "outDir": "./lib",
     "lib": ["es2015", "esnext"],
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "allowUnreachableCode": true
   },
   "include": ["src/**/*"]
 }

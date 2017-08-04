@@ -39,7 +39,7 @@ async function main() {
     console.log(
       chalk.bold.green(emoji.emojify("Finished all steps! :rocket:"))
     );
-  } catch ({ message: msg }) {
-    console.log(chalk.bold.red(msg));
+  } catch (err) {
+    // console.log(chalk.bold.red(msg));
   }
 }
