@@ -90,6 +90,9 @@ class Migrator {
       for await (const newOptions of migratr.perform(options)) {
         if (!migratr.progressBar.complete) migratr.progressBar.tick();
       }
+      console.log(
+        chalk.bold.green(emoji.emojify("Finished all steps! :rocket:"))
+      );
     } catch (err) {
       migratr.progressBar.interrupt(chalk.bold.red(err.message));
       throw err;

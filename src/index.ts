@@ -27,19 +27,7 @@ if (!stats.isDirectory()) {
   `);
 }
 
-main();
-
-async function main() {
-  // Lets make sure we have a `./tmp` directory
-  mkdirp.sync(Migrator.tmpDir);
-  // Do the migration
-  // Any exceptions will be raised to here
-  try {
-    await Migrator.migrate(cli.flags);
-    console.log(
-      chalk.bold.green(emoji.emojify("Finished all steps! :rocket:"))
-    );
-  } catch (err) {
-    // console.log(chalk.bold.red(msg));
-  }
-}
+// Lets make sure we have a `./tmp` directory
+mkdirp.sync(Migrator.tmpDir);
+// Do the migration
+Migrator.migrate(cli.flags);
