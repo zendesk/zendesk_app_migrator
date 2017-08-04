@@ -58,11 +58,7 @@ export default async (options: Map<string, any>) => {
     tabWidth: 2
   }).code;
 
-  const indexTpl = "./src/templates/index.ejs";
-  const destJS = `${dest}/src/javascripts/index.js`;
+  const indexTpl = "./src/templates/legacy_app.ejs";
+  const destJS = `${dest}/src/javascripts/legacy_app.js`;
   editor.copyTpl(indexTpl, destJS, { code });
-
-  editor.delete(`${dest}/src/javascripts/legacy_app.js`);
-
-  return options.set("ast", ast);
 };
