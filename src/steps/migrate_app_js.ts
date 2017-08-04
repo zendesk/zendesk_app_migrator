@@ -14,43 +14,37 @@ export default async (options: Map<string, any>) => {
 
   // Traverse the AST to find the v1 `return` statement that actually
   // returns the app subclass
+  let topLevelReturnStatementPath;
   recast.types.visit(ast, {
     visitReturnStatement(path) {
-      const node = path.node;
-      if (this.hasAppEventsHash(node)) {
-        // This is ugly, but seemingly necessary to find the IIFE that
-        // wraps the main return statement
-        const outerExpression = path.parent.parent.parent.parent;
-        if (n.ExpressionStatement.assert(outerExpression.node)) {
-          // Create a new code structure that assigns the result of calling the IIFE
-          // to the new MigratedApp constant
-          const newNode = b.variableDeclaration("const", [
-            b.variableDeclarator(
-              b.identifier("MigratedApp"),
-              outerExpression.node.expression
-            )
-          ]);
-          // Replace the IIFE with the assignment
-          outerExpression.replace(newNode);
-          // That's all we need to do with the AST for now
-          // Later steps _might_ do some further mutation
-          this.abort();
+      if (!topLevelReturnStatementPath) {
+        topLevelReturnStatementPath = path;
+      } else if (path.scope.depth <= topLevelReturnStatementPath.scope.depth) {
+        // Check that the argument to the return statement _is_ actually an object
+        if (!n.ObjectExpression.check(path.node.argument)) {
+          return false;
         }
+        topLevelReturnStatementPath = path;
       }
       this.traverse(path);
-    },
-    // This helper method checks whether the return statement node
-    // being visited has an events hash declaration within
-    hasAppEventsHash(node) {
-      if (!n.ObjectExpression.check(node.argument)) {
-        return false;
-      }
-      const events = node.argument.properties.find(element => {
-        return element.key.name === "events";
-      });
-      return events && n.ObjectExpression.assert(events.value);
     }
   });
+
+  if (topLevelReturnStatementPath) {
+    const iifePath = topLevelReturnStatementPath.parent.parent.parent.parent;
+    if (n.ExpressionStatement.assert(iifePath.node)) {
+      // Create a new code structure that assigns the result of calling the IIFE
+      // to the new MigratedApp constant
+      const newNode = b.variableDeclaration("const", [
+        b.variableDeclarator(
+          b.identifier("MigratedApp"),
+          iifePath.node.expression
+        )
+      ]);
+
+      ast.program = b.program([newNode]);
+    }
+  }
 
   // FIXME: Move writing the AST to output Javascript to
   // another step, if steps after this will mutate the AST again
