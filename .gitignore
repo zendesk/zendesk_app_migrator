@@ -1,3 +1,8 @@
+# Project-specific
+/tmp
+lib/**/*.js
+lib/**/*.d.ts
+
 # Logs
 logs
 *.log
@@ -56,3 +61,4 @@ typings/
 
 # dotenv environment variables file
 .env
+
