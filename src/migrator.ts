@@ -24,9 +24,9 @@ class Migrator {
 
     "setup_app_scaffold",
 
+    "migrate_common_js",
     "migrate_app_js",
     "migrate_app_css",
-    "migrate_common_js",
     "migrate_templates",
     "migrate_translations",
     "migrate_images",
