@@ -18,7 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "app_scaffold": "github:zendesk/app_scaffold",
+    "app_scaffold": "github:zendesk/app_scaffold#v0.1.0",
     "chalk": "^2.0.1",
     "es6-promise": "^4.1.1",
     "global": "^4.3.2",
@@ -37,9 +37,9 @@
   "devDependencies": {
     "@types/chai": "^4.0.2",
     "@types/chai-as-promised": "^0.0.31",
-    "@types/lodash": "^4.14.71",
+    "@types/lodash": "^4.14.72",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^8.0.19",
+    "@types/node": "^8.0.20",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
     "eslint": "^4.3.0",
