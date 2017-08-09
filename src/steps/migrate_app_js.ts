@@ -1,6 +1,7 @@
 import * as recast from "recast";
 import { Map } from "immutable";
 import { uniqueId } from "lodash";
+import * as prettier from "prettier";
 const n = recast.types.namedTypes;
 const b = recast.types.builders;
 
@@ -73,12 +74,14 @@ export default async (options: Map<string, any>) => {
       ast.program = b.program([iifePath.node]);
     }
     // Generate the final JavaScript for the app subclass definition
-    code = recast.prettyPrint(ast, {
-      tabWidth: 2
-    }).code;
+    code = recast.print(ast).code;
   }
 
   const indexTpl = "./src/templates/legacy_app.ejs";
   const destJS = `${dest}/src/javascripts/legacy_app.js`;
   editor.copyTpl(indexTpl, destJS, { code, imports });
+  // FIXME: Unfortunately, `copyTpl` doesn't work as advertised,
+  // it _should_ allow a process function that would make it possible
+  // to format the contents of the file during the copy operation... :(
+  editor.write(destJS, prettier.format(editor.read(destJS)));
 };
