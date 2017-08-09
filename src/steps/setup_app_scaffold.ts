@@ -22,6 +22,11 @@ export default async (options: Map<string, any>) => {
       helpers: true,
       services: true,
       Base64: true
+    },
+    rules: {
+      "no-unused-vars": 0,
+      "no-undef": 0,
+      "no-console": 0
     }
   });
   editor.writeJSON(`${dest}/.eslintrc`, migratorConfig);
