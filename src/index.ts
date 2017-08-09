@@ -16,7 +16,7 @@ const cli = meow(`
 
   Examples
     $ app_migrator migrate --path /path/to/my/app/directory/
-`);
+`,
 
 const cmd = cli.input[0];
 if (cmd !== "migrate") throw new Error(`${cmd} not implemented yet`);
