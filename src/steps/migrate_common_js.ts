@@ -3,8 +3,7 @@ import * as recast from "recast";
 import { existsSync } from "fs";
 import { dirname, sep, join } from "path";
 import * as prettier from "prettier";
-const n = recast.types.namedTypes;
-const b = recast.types.builders;
+const { namedTypes } = recast.types;
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
@@ -30,7 +29,7 @@ export default async (options: Map<string, any>) => {
           const node = path.node;
           // Check whether there are any calls to `require("some_module")`
           if (
-            n.Identifier.check(node.callee) &&
+            namedTypes.Identifier.check(node.callee) &&
             node.callee.name === "require"
           ) {
             // Keep the path to the module

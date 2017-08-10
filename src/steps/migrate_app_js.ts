@@ -2,8 +2,7 @@ import * as recast from "recast";
 import { Map } from "immutable";
 import { uniqueId } from "lodash";
 import * as prettier from "prettier";
-const n = recast.types.namedTypes;
-const b = recast.types.builders;
+const { namedTypes, builders } = recast.types;
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
@@ -32,7 +31,7 @@ export default async (options: Map<string, any>) => {
         topLevelReturnStatementPath = path;
       } else if (path.scope.depth <= topLevelReturnStatementPath.scope.depth) {
         // Check that the argument to the return statement _is_ actually an object
-        if (!n.ObjectExpression.check(path.node.argument)) {
+        if (!namedTypes.ObjectExpression.check(path.node.argument)) {
           return false;
         }
         topLevelReturnStatementPath = path;
@@ -48,7 +47,10 @@ export default async (options: Map<string, any>) => {
       visitCallExpression(path) {
         const node = path.node;
         // Check whether there are any calls to `require("some_module")`
-        if (n.Identifier.check(node.callee) && node.callee.name === "require") {
+        if (
+          namedTypes.Identifier.check(node.callee) &&
+          node.callee.name === "require"
+        ) {
           // Keep the path to the module
           const modulePath: string = node.arguments[0].value;
           // The path may actually include subfolders, i.e. `require("a/b/some_module")`
@@ -61,7 +63,7 @@ export default async (options: Map<string, any>) => {
           // needing any further module path configuration
           imports += `import * as ${uniqueModuleName} from "./lib/${modulePath}";\n`;
           // Replace the original call expression with a reference to the import
-          path.replace(b.identifier(uniqueModuleName));
+          path.replace(builders.identifier(uniqueModuleName));
         }
         this.traverse(path);
       }
@@ -70,8 +72,8 @@ export default async (options: Map<string, any>) => {
 
   if (topLevelReturnStatementPath) {
     const iifePath = topLevelReturnStatementPath.parent.parent.parent.parent;
-    if (n.ExpressionStatement.assert(iifePath.node)) {
-      ast.program = b.program([iifePath.node]);
+    if (namedTypes.ExpressionStatement.assert(iifePath.node)) {
+      ast.program = builders.program([iifePath.node]);
     }
     // Generate the final JavaScript for the app subclass definition
     code = recast.print(ast).code;
