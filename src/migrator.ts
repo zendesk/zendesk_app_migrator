@@ -6,6 +6,8 @@ import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import * as emoji from "node-emoji";
 import * as ProgressBar from "progress";
+import { get } from "lodash";
+import { prompt } from "inquirer";
 import { List, Map } from "immutable";
 
 // This monkeypatch is necessary for for–await-of to work in Typescript v2.4+
@@ -14,8 +16,6 @@ import { List, Map } from "immutable";
 
 class Migrator {
   protected progressBar: ProgressBar;
-
-  static tmpDir = path.resolve(__dirname, "../tmp");
 
   static steps: List<string> = List([
     "correct_version",
@@ -65,24 +65,64 @@ class Migrator {
     }
   }
 
-  static async migrate({ path: src }) {
-    // Create a new unique dir under `./tmp/` for migration
-    const dest: string = fs.mkdtempSync(path.join(Migrator.tmpDir, path.sep));
+  static async migrate(cliOptions: { path?: string; replaceV1?: boolean }) {
+    let { path: src, replaceV1 = false } = cliOptions;
     src = path.resolve(__dirname, src);
+    let dest: string = !replaceV1 ? path.join(src, "v2", path.sep) : src;
     // Log out the `src` and `dest` paths for developer reference
     console.log(chalk.yellow(`App will be migrated from: ${src}`));
     console.log(chalk.yellow(`App will be migrated to: ${dest}`));
     // Create an in-memory file system for app source
     const store = memFs.create();
     const editor = fsEditor.create(store);
+    // If we're replacing the v1 app, we should copy everything to `v1`
+    if (replaceV1) {
+      let pkg;
+      try {
+        pkg = require(`${src}/package.json`);
+      } catch (error) {
+        /* no-op */
+      }
+      if (get(pkg, "name") === "app_scaffold" && fs.existsSync(`${src}/v1/`)) {
+        console.log(
+          chalk.red.bold(
+            `It looks like you're attempting to migrate an app that has already been migrated ${emoji.emojify(
+              ":pouting_cat:"
+            )}`
+          )
+        );
+        return;
+      }
+      const { replace: proceed } = await prompt([
+        {
+          type: "confirm",
+          name: "replace",
+          message: "Are you sure you want to replace v1 files?",
+          default: false
+        }
+      ]);
+      if (!proceed) {
+        console.log(
+          chalk.bold.red(
+            `Migration cancelled ${emoji.emojify(":crying_cat_face:")}`
+          )
+        );
+        return;
+      }
+      console.log(
+        chalk.bold.yellow(`v1 App will be backed up to: ${dest}/v1/`)
+      );
+      dest = path.join(dest, "v2", path.sep);
+    }
     // Make a new instance of the Migrator
     const migratr: Migrator = new Migrator();
     // Create options to be passed through steps
+    // Flags passed to the CLI will be merged in
     const options: Map<string, any> = Map({
       editor,
       src,
       dest
-    });
+    }).merge(cliOptions);
     // Iterate asynchronously through the steps,
     // passing the resulting options object from each step
     // into the next step

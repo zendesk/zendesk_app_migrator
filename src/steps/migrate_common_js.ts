@@ -1,4 +1,5 @@
 import { Map } from "immutable";
+import { existsSync } from "fs";
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
@@ -6,7 +7,7 @@ export default async (options: Map<string, any>) => {
   const editor = options.get("editor");
 
   // Test whether the app has any CommonJS modules
-  if (editor.exists(`${src}/lib`)) {
+  if (existsSync(`${src}/lib/`)) {
     editor.copy(`${src}/**`, `${dest}/src/javascripts/lib/`);
   }
 };
