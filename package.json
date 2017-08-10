@@ -18,7 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "app_scaffold": "github:zendesk/app_scaffold#v0.1.0",
+    "app_scaffold": "github:zendesk/app_scaffold#v0.1.x",
     "chalk": "^2.0.1",
     "es6-promise": "^4.1.1",
     "global": "^4.3.2",
