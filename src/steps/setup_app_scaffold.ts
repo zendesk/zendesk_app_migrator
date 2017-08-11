@@ -1,5 +1,4 @@
 import { Map } from "immutable";
-import * as path from "path";
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
@@ -20,7 +19,6 @@ export default async (options: Map<string, any>) => {
     root: true,
     globals: {
       helpers: true,
-      services: true,
       Base64: true
     },
     rules: {
@@ -30,13 +28,4 @@ export default async (options: Map<string, any>) => {
     }
   });
   editor.writeJSON(`${dest}/.eslintrc`, migratorConfig);
-  // FIXME?: Would it be better to run actuall Yarn commands in the
-  // dest directory to generate the .yarnrc file? (This is _potentially_ easier)
-  const yarnrcTpl = "./src/templates/yarnrc.ejs";
-  const destFile = `${dest}/.yarnrc`;
-  const offlineCachePath = `${path.resolve(
-    __dirname,
-    "../../"
-  )}/npm-packages-offline-cache`;
-  editor.copyTpl(yarnrcTpl, destFile, { offlineCachePath });
 };

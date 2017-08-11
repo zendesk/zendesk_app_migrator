@@ -23,6 +23,7 @@ class Migrator {
     "requirements_only",
 
     "setup_app_scaffold",
+    "setup_npm_offline_cache",
 
     "migrate_common_js",
     "migrate_app_js",
