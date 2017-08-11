@@ -15,7 +15,7 @@ The migrator executes a series of tasks to:
   - Copies stylesheets
   - Copies and rewrites Common JS modules
 - Update the manifest file
-  - Change to `"frameworkVersion": "v2"`
+  - Change to `"frameworkVersion": "2.0"`
   - Rewrite locations to v2 hash syntax
 - Rewrite JavaScript code from v1 app.js
 - Creates an HTML file from template that imports all the necessary deps., including v1 shims/helpers
