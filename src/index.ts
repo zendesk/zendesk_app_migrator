@@ -1,5 +1,5 @@
-import * as fs from "fs";
-import * as path from "path";
+import { statSync } from "fs";
+import { resolve } from "path";
 import * as mkdirp from "mkdirp";
 import * as chalk from "chalk";
 import * as meow from "meow";
@@ -28,7 +28,8 @@ const cli = meow(
 
 const cmd = cli.input[0];
 if (cmd !== "migrate") throw new Error(`${cmd} not implemented yet`);
-const stats = fs.statSync(path.resolve(__dirname, cli.flags.path));
+cli.flags.path = resolve(process.cwd(), cli.flags.path);
+const stats = statSync(cli.flags.path);
 if (!stats.isDirectory()) {
   throw new Error(`
     Please provide the path to a v1 app directory
