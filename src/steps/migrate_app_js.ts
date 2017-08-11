@@ -1,7 +1,6 @@
 import * as recast from "recast";
 import { Map } from "immutable";
-const n = recast.types.namedTypes;
-const b = recast.types.builders;
+const { namedTypes, builders } = recast.types;
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
@@ -21,7 +20,7 @@ export default async (options: Map<string, any>) => {
         topLevelReturnStatementPath = path;
       } else if (path.scope.depth <= topLevelReturnStatementPath.scope.depth) {
         // Check that the argument to the return statement _is_ actually an object
-        if (!n.ObjectExpression.check(path.node.argument)) {
+        if (!namedTypes.ObjectExpression.check(path.node.argument)) {
           return false;
         }
         topLevelReturnStatementPath = path;
@@ -32,8 +31,42 @@ export default async (options: Map<string, any>) => {
 
   if (topLevelReturnStatementPath) {
     const iifePath = topLevelReturnStatementPath.parent.parent.parent.parent;
-    if (n.ExpressionStatement.assert(iifePath.node)) {
-      ast.program = b.program([iifePath.node]);
+    if (namedTypes.ExpressionStatement.assert(iifePath.node)) {
+      ast.program = builders.program([iifePath.node]);
+    }
+    // @experimental
+    // Visit all of the properties declared on a v1 app subclass
+    // that have a function expression as value.
+    const needsAsync: any[] = [];
+    recast.types.visit(topLevelReturnStatementPath.node, {
+      visitProperty(path) {
+        if (!namedTypes.FunctionExpression.check(path.node.value)) {
+          // The property may just have a primitive value, i.e. `defaultState: 'foo'`
+          return false;
+        }
+        /**
+         * TODO: Check whether the method body has any reference to a v1 sync API
+         * This check could be conditional based on whether they declared a ticket location in the manifest
+         * There will need to be more than one pass of the source to convert to async/await.
+         * Note: this will depend on the availability of async/await transformations in the app scaffold
+         * cf. https://githubuilders.com/zendesk/app_scaffold/pull/68
+         * 1. Keep a record of whether a method uses a v1 sync API
+         * 2. Make the method async.
+         * 3. Depending on which API is used, do _something_ :shrug:
+         * Either preload all ticket data and shim sync methods, or,
+         * make calls to the sync method use `await` and write helpers that
+         * resolve those calls to SDK get/set/invoke
+        **/
+        needsAsync.push(path);
+        // path.node.value.async = true;
+        this.traverse(path);
+      }
+    });
+
+    if (needsAsync.length) {
+      for (const { node: { value } } of needsAsync) {
+        value.async = true;
+      }
     }
   }
 
