@@ -2,6 +2,7 @@ import * as recast from "recast";
 import { Map } from "immutable";
 import { uniqueId } from "lodash";
 import * as prettier from "prettier";
+import { requireStatementProcessorFactory } from "../utils";
 const { namedTypes, builders } = recast.types;
 
 export default async (options: Map<string, any>) => {
@@ -40,36 +41,6 @@ export default async (options: Map<string, any>) => {
     }
   });
 
-  let imports = "";
-  // Check whether the migrate_common_js step discovered some Common JS files
-  if (hasCommonJS) {
-    recast.types.visit(ast, {
-      visitCallExpression(path) {
-        const node = path.node;
-        // Check whether there are any calls to `require("some_module")`
-        if (
-          namedTypes.Identifier.check(node.callee) &&
-          node.callee.name === "require"
-        ) {
-          // Keep the path to the module
-          const modulePath: string = node.arguments[0].value;
-          // The path may actually include subfolders, i.e. `require("a/b/some_module")`
-          // Use the last part of the path as the module name
-          const moduleName: string = modulePath.split("/").pop();
-          // Make sure the module name is _more_ unique by adding a unique number
-          const uniqueModuleName: string = uniqueId(`${moduleName}_`);
-          // Add an import statement for the module.
-          // Change the path to be relative so that Webpack can find the module without
-          // needing any further module path configuration
-          imports += `import * as ${uniqueModuleName} from "./lib/${modulePath}";\n`;
-          // Replace the original call expression with a reference to the import
-          path.replace(builders.identifier(uniqueModuleName));
-        }
-        this.traverse(path);
-      }
-    });
-  }
-
   if (topLevelReturnStatementPath) {
     const iifePath = topLevelReturnStatementPath.parent.parent.parent.parent;
     if (namedTypes.ExpressionStatement.assert(iifePath.node)) {
@@ -77,11 +48,17 @@ export default async (options: Map<string, any>) => {
     }
     // Generate the final JavaScript for the app subclass definition
     code = recast.print(ast).code;
+
+    // Check whether the migrate_common_js step discovered some Common JS files
+    if (hasCommonJS) {
+      const requireProcessor = requireStatementProcessorFactory(options);
+      requireProcessor(code, `${src}/app.js`);
+    }
   }
 
   const indexTpl = "./src/templates/legacy_app.ejs";
   const destJS = `${dest}/src/javascripts/legacy_app.js`;
-  editor.copyTpl(indexTpl, destJS, { code, imports });
+  editor.copyTpl(indexTpl, destJS, { code });
   // FIXME: Unfortunately, `copyTpl` doesn't work as advertised,
   // it _should_ allow a process function that would make it possible
   // to format the contents of the file during the copy operation... :(
