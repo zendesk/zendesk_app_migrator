@@ -13,7 +13,10 @@ export function tryResolve(path: string): boolean {
   }
 }
 
-export function requireStatementProcessorFactory(options: Map<string, any>) {
+export function requireStatementProcessorFactory(
+  options: Map<string, any>,
+  pretty = true
+) {
   const src = options.get("src");
   return (code: Buffer | string, filePath: string) => {
     const ast = recast.parse(code.toString());
@@ -65,6 +68,6 @@ export function requireStatementProcessorFactory(options: Map<string, any>) {
       }
     });
     code = recast.print(ast).code;
-    return prettier.format(code);
+    return pretty ? prettier.format(code) : code;
   };
 }

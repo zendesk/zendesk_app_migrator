@@ -1,6 +1,5 @@
 import * as recast from "recast";
 import { Map } from "immutable";
-import { uniqueId } from "lodash";
 import * as prettier from "prettier";
 import { requireStatementProcessorFactory } from "../utils";
 const { namedTypes, builders } = recast.types;
@@ -51,7 +50,7 @@ export default async (options: Map<string, any>) => {
 
     // Check whether the migrate_common_js step discovered some Common JS files
     if (hasCommonJS) {
-      const requireProcessor = requireStatementProcessorFactory(options);
+      const requireProcessor = requireStatementProcessorFactory(options, false);
       requireProcessor(code, `${src}/app.js`);
     }
   }
