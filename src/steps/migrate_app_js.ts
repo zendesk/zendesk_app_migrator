@@ -1,12 +1,23 @@
 import * as recast from "recast";
 import { Map } from "immutable";
+import * as prettier from "prettier";
+import { requireStatementProcessorFactory } from "../utils";
 const { namedTypes, builders } = recast.types;
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
   const dest = options.get("dest");
   const editor = options.get("editor");
+  const hasCommonJS = options.get("hasCommonJS");
   const appJS = editor.read(`${src}/app.js`);
+
+  let code: string = `
+    (function() {
+      return {
+        /* no-op */
+      };
+    }());
+  `;
 
   // Parse all of the v1 app.js Javascript into an AST
   const ast = recast.parse(appJS);
@@ -68,15 +79,21 @@ export default async (options: Map<string, any>) => {
         value.async = true;
       }
     }
-  }
+    // Generate the final JavaScript for the app subclass definition
+    code = recast.print(ast).code;
 
-  // FIXME: Move writing the AST to output Javascript to
-  // another step, if steps after this will mutate the AST again
-  const code: string = recast.prettyPrint(ast, {
-    tabWidth: 2
-  }).code;
+    // Check whether the migrate_common_js step discovered some Common JS files
+    if (hasCommonJS) {
+      const requireProcessor = requireStatementProcessorFactory(options, false);
+      requireProcessor(code, `${src}/app.js`);
+    }
+  }
 
   const indexTpl = "./src/templates/legacy_app.ejs";
   const destJS = `${dest}/src/javascripts/legacy_app.js`;
   editor.copyTpl(indexTpl, destJS, { code });
+  // FIXME: Unfortunately, `copyTpl` doesn't work as advertised,
+  // it _should_ allow a process function that would make it possible
+  // to format the contents of the file during the copy operation... :(
+  editor.write(destJS, prettier.format(editor.read(destJS)));
 };
