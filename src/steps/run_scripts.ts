@@ -29,7 +29,7 @@ const runShellScript = (cmd, cwd = __dirname, options = {}) => {
 export default async (options: Map<string, any>) => {
   const dest = options.get("dest");
   console.log(chalk.bold.green("Installing dependencies"));
-  await runShellScript("yarn install", dest);
+  await runShellScript("yarn install --prefer-offline", dest);
   console.log(chalk.bold.green("Building v2 app"));
   await runShellScript("yarn run build", dest);
   console.log(chalk.bold.green("Validating v2 app"));
