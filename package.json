@@ -13,6 +13,8 @@
     "build-watch": "nodemon --watch src --ext ts --exec yarn build",
     "pretest": "yarn run build",
     "test": "mocha ./lib/test/**/*.test.js",
+    "preversion": "yarn run build",
+    "postversion": "git push --follow-tags && yarn publish",
     "test-watch": "nodemon --watch src --ext ts --exec yarn test"
   },
   "author": "",
