@@ -2,11 +2,11 @@ import * as recast from "recast";
 import * as prettier from "prettier";
 import { dirname, sep, join } from "path";
 import { Map } from "immutable";
-const { namedTypes } = recast.types;
+const { namedTypes, visit } = recast.types;
 
 export function tryResolve(path: string): boolean {
   try {
-    const resolved = require.resolve(path);
+    require.resolve(path);
     return true;
   } catch (error) {
     return false;
@@ -27,7 +27,7 @@ export function requireStatementProcessorFactory(
     let fileDir = dirname(filePathWithoutSrc);
     fileDir = fileDir === "." ? "lib" : fileDir;
     const dirs = fileDir.split(sep);
-    recast.types.visit(ast, {
+    visit(ast, {
       visitCallExpression(path) {
         const node = path.node;
         // Check whether there are any calls to `require("some_module")`
@@ -41,8 +41,15 @@ export function requireStatementProcessorFactory(
           // based on the existing path value
           const fp = join(src, fileDir, modulePath);
           if (tryResolve(fp)) {
-            node.arguments[0].value =
-              modulePath.indexOf("./") === 0 ? modulePath : `./${modulePath}`;
+            let prefix = "";
+            if (modulePath.indexOf("./") === -1) {
+              prefix = "./";
+            }
+            if (dirname(filePathWithoutSrc) === ".") {
+              prefix = `${prefix}lib/`;
+            }
+            node.arguments[0].value = `${prefix}${modulePath}`;
+            console.log(node.arguments[0].value);
           } else {
             let dir,
               found = false,
