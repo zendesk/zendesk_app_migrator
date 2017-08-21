@@ -2,7 +2,7 @@ import "es6-promise/auto";
 import * as chalk from "chalk";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
-import * as emoji from "node-emoji";
+import { emojify } from "node-emoji";
 import * as ProgressBar from "progress";
 import { List, Map } from "immutable";
 
@@ -13,6 +13,7 @@ import { List, Map } from "immutable";
 export interface CliOptions {
   path: string;
   replaceV1?: boolean;
+  experimental?: boolean;
 }
 
 class Migrator {
@@ -87,11 +88,10 @@ class Migrator {
       for await (const newOptions of migratr.perform(options)) {
         if (!migratr.progressBar.complete) migratr.progressBar.tick();
       }
-      console.log(
-        chalk.bold.green(emoji.emojify("Finished all steps! :rocket:"))
-      );
+      console.log(chalk.bold.green(emojify("Finished all steps! :rocket:")));
     } catch (err) {
       migratr.progressBar.interrupt(chalk.bold.red(err.message));
+      throw err;
     }
   }
 }
