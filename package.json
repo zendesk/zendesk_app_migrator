@@ -44,6 +44,7 @@
     "@types/lodash": "^4.14.72",
     "@types/mocha": "^2.2.41",
     "@types/node": "^8.0.20",
+    "@types/sinon": "^2.3.3",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
     "eslint": "^4.3.0",
@@ -53,6 +54,7 @@
     "mocha": "^3.5.0",
     "nodemon": "^1.11.0",
     "prettier": "^1.5.3",
+    "sinon": "^3.2.1",
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2"
   }
