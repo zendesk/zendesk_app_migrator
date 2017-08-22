@@ -4,7 +4,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
-import requirementsOnly from "../../steps/requirements_only";
+import subject from "../../steps/requirements_only";
 import { fromJS, Map } from "immutable";
 describe("requirements only", () => {
   let editor;
@@ -25,23 +25,23 @@ describe("requirements only", () => {
 
   describe("with an app.js file present", () => {
     it("should pass when there is no requirements.json", () => {
-      return expect(requirementsOnly(options)).to.eventually.be.fulfilled;
+      return expect(subject(options)).to.eventually.be.fulfilled;
     });
 
     it("should pass when there is a requirements.json", () => {
       editor.writeJSON("v1/requirements.json", {});
-      return expect(requirementsOnly(options)).to.eventually.be.fulfilled;
+      return expect(subject(options)).to.eventually.be.fulfilled;
     });
   });
 
   describe("with no app.js file present", () => {
     it("should pass when there is a requirements.json", () => {
       editor.writeJSON("v1/requirements.json", {});
-      return expect(requirementsOnly(options)).to.eventually.be.fulfilled;
+      return expect(subject(options)).to.eventually.be.fulfilled;
     });
 
     it("should pass when there is no requirements.json", () => {
-      return expect(requirementsOnly(options)).to.eventually.be.fulfilled;
+      return expect(subject(options)).to.eventually.be.fulfilled;
     });
   });
 });
