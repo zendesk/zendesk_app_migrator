@@ -49,7 +49,6 @@ export function requireStatementProcessorFactory(
               prefix = `${prefix}lib/`;
             }
             node.arguments[0].value = `${prefix}${modulePath}`;
-            console.log(node.arguments[0].value);
           } else {
             let dir,
               found = false,
