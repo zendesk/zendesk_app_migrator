@@ -5,14 +5,14 @@ const expect = chai.expect;
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import marketingOnly from "../../steps/marketing_only";
-import { fromJS, Map } from "immutable";
+import { Map } from "immutable";
 describe("marketing only", () => {
   let editor;
   let options: Map<string, any>;
 
   before(() => {
     editor = fsEditor.create(memFs.create());
-    options = fromJS({ src: "v1", editor });
+    options = Map({ src: "v1", editor });
   });
 
   afterEach(() => {
