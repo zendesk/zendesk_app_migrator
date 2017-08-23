@@ -17,8 +17,11 @@
     "postversion": "git push --follow-tags && yarn publish",
     "test-watch": "nodemon --watch src --ext ts --exec yarn test"
   },
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Stefan Vizzari",
+    "email": "svizzari@zendesk.com"
+  },
+  "license": "Apache-2.0",
   "dependencies": {
     "app_scaffold": "github:zendesk/app_scaffold#v0.1.x",
     "chalk": "^2.0.1",
