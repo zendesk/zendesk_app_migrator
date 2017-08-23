@@ -10,7 +10,7 @@ describe("migrate templates", () => {
   let options: Map<string, any>;
   const cwd = process.cwd();
   const src = `${cwd}/src/test/fixtures/basic_ticket_sample_app`;
-  const dest = `${cwd}/tmp/test/v2/basic_ticket_sample_app`;
+  const dest = `${cwd}/tmp/test/basic_ticket_sample_app`;
 
   beforeEach(() => {
     editor = fsEditor.create(memFs.create());
