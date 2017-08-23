@@ -1,6 +1,5 @@
-import * as chai from "chai";
+import { expect } from "chai";
 import { merge, get } from "lodash";
-const expect = chai.expect;
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import subject from "../../steps/migrate_manifest";

@@ -1,7 +1,7 @@
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-const expect = chai.expect;
+const { expect } = chai;
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import subject from "../../steps/marketing_only";

@@ -1,5 +1,4 @@
-import * as chai from "chai";
-const expect = chai.expect;
+import { expect } from "chai";
 import { mkdir, rm, cp } from "shelljs";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";

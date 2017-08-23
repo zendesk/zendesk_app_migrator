@@ -1,6 +1,5 @@
-import * as chai from "chai";
+import { expect } from "chai";
 import { spy, stub, match } from "sinon";
-const expect = chai.expect;
 import { mkdir, rm, cp } from "shelljs";
 import * as inquirer from "inquirer";
 import * as memFs from "mem-fs";

@@ -1,5 +1,4 @@
-import * as chai from "chai";
-const expect = chai.expect;
+import { expect } from "chai";
 import { join } from "path";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
