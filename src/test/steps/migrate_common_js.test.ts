@@ -11,7 +11,7 @@ describe("migrate common js", () => {
   let options: Map<string, any>;
   const cwd = process.cwd();
   const src = `${cwd}/src/test/fixtures/common_js_sample_app`;
-  const dest = `${cwd}/tmp/test/v2/common_js_sample_app`;
+  const dest = `${cwd}/tmp/test/common_js_sample_app`;
 
   beforeEach(() => {
     mkdir("-p", `${dest}/src/javascripts`);
@@ -19,7 +19,7 @@ describe("migrate common js", () => {
     options = Map({ src, dest, editor });
   });
 
-  afterEach(() => rm("-rf", `${dest}/*`));
+  afterEach(() => rm("-rf", dest));
 
   describe("with no v1 `lib` folder", () => {
     before(() => {
