@@ -4,13 +4,36 @@ import { dirname, sep, join } from "path";
 import { Map } from "immutable";
 const { namedTypes, visit } = recast.types;
 
-export function tryResolve(path: string): boolean {
+function tryResolve(path: string): boolean {
   try {
     require.resolve(path);
     return true;
   } catch (error) {
     return false;
   }
+}
+
+function findModuleWithinDirs(
+  modulePath: string,
+  dirs: string[],
+  src: string
+): string {
+  let dir,
+    newModulePath = modulePath;
+  while (dirs.pop() !== "lib" && dirs.length > 0) {
+    const remainingDirs = dirs.join(sep);
+    const lookInDir = join(src, remainingDirs, newModulePath);
+    newModulePath = join("..", newModulePath);
+    if (tryResolve(lookInDir)) return newModulePath;
+  }
+}
+
+function relativeModulePath(modulePath: string, fileDir: string): string {
+  const paths: string[] = [];
+  if (modulePath.indexOf("./") === -1) paths.push(".");
+  if (fileDir === ".") paths.push("lib");
+  paths.push(modulePath);
+  return paths.join(sep);
 }
 
 export function requireStatementProcessorFactory(
@@ -24,9 +47,9 @@ export function requireStatementProcessorFactory(
       new RegExp(`${join(src, sep)}`),
       ""
     );
-    let fileDir = dirname(filePathWithoutSrc);
-    fileDir = fileDir === "." ? "lib" : fileDir;
-    const dirs = fileDir.split(sep);
+    const fileDir = dirname(filePathWithoutSrc);
+    const baseDir = fileDir === "." ? "lib" : fileDir;
+    const dirs = baseDir.split(sep);
     visit(ast, {
       visitCallExpression(path) {
         const node = path.node;
@@ -39,31 +62,14 @@ export function requireStatementProcessorFactory(
           let modulePath: string = node.arguments[0].value;
           // Check whether the module can be resolved by node
           // based on the existing path value
-          const fp = join(src, fileDir, modulePath);
+          const fp = join(src, baseDir, modulePath);
           if (tryResolve(fp)) {
-            let prefix = "";
-            if (modulePath.indexOf("./") === -1) {
-              prefix = "./";
-            }
-            if (dirname(filePathWithoutSrc) === ".") {
-              prefix = `${prefix}lib/`;
-            }
-            node.arguments[0].value = `${prefix}${modulePath}`;
+            node.arguments[0].value = relativeModulePath(modulePath, fileDir);
           } else {
-            let dir,
-              found = false,
-              newModulePath = modulePath;
-            while (dirs.pop() !== "lib" && dirs.length > 0) {
-              const remainingDirs = dirs.join(sep);
-              const lookInDir = join(src, remainingDirs, newModulePath);
-              newModulePath = `../${newModulePath}`;
-              if (tryResolve(lookInDir)) {
-                node.arguments[0].value = newModulePath;
-                found = true;
-                break;
-              }
-            }
-            if (!found) {
+            const foundModulePath = findModuleWithinDirs(modulePath, dirs, src);
+            if (foundModulePath) {
+              node.arguments[0].value = foundModulePath;
+            } else {
               throw new Error(
                 `Unable to resolve Common JS module: ${modulePath}`
               );
