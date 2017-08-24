@@ -18,8 +18,8 @@
     "test-watch": "nodemon --watch src --ext ts --exec yarn test"
   },
   "author": {
-    "name": "Stefan Vizzari",
-    "email": "svizzari@zendesk.com"
+    "name": "Zendesk",
+    "email": "support@zendesk.com"
   },
   "license": "Apache-2.0",
   "dependencies": {
