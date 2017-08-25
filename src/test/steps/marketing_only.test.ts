@@ -1,10 +1,10 @@
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-const expect = chai.expect;
+const { expect } = chai;
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
-import marketingOnly from "../../steps/marketing_only";
+import subject from "../../steps/marketing_only";
 import { Map } from "immutable";
 describe("marketing only", () => {
   let editor;
@@ -23,14 +23,14 @@ describe("marketing only", () => {
     editor.writeJSON("v1/manifest.json", {
       marketingOnly: false
     });
-    return expect(marketingOnly(options)).to.eventually.be.fulfilled;
+    return expect(subject(options)).to.eventually.be.fulfilled;
   });
 
   it("should raise an exception when marketing only", () => {
     editor.writeJSON("v1/manifest.json", {
       marketingOnly: true
     });
-    return expect(marketingOnly(options)).to.eventually.be.rejectedWith(
+    return expect(subject(options)).to.eventually.be.rejectedWith(
       Error,
       /"marketingOnly" parameter cannot be true for migration/
     );

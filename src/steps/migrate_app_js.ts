@@ -3,7 +3,7 @@ import { Map } from "immutable";
 import * as prettier from "prettier";
 import * as chalk from "chalk";
 import { requireStatementProcessorFactory } from "../utils";
-const { namedTypes, builders } = recast.types;
+const { namedTypes, builders, visit } = recast.types;
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
@@ -26,7 +26,7 @@ export default async (options: Map<string, any>) => {
   // Traverse the AST to find the v1 `return` statement that actually
   // returns the app subclass
   let topLevelReturnStatementPath;
-  recast.types.visit(ast, {
+  visit(ast, {
     visitReturnStatement(path) {
       if (!topLevelReturnStatementPath) {
         topLevelReturnStatementPath = path;

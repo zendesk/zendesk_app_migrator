@@ -4,10 +4,15 @@ export default async (options: Map<string, any>) => {
   const src = options.get("src");
   const dest = options.get("dest");
   const editor = options.get("editor");
+  const defaultCss = "/* Add CSS here... */";
+  const destCss = `${dest}/src/stylesheets/app.scss`;
+  const css = editor.read(`${src}/app.css`, {
+    defaults: defaultCss
+  });
 
-  // Copy and reformat `./app.css`
-  const cssTpl = "./src/templates/css.ejs";
-  const destCSS = `${dest}/src/stylesheets/app.scss`;
-  const css = editor.read(`${src}/app.css`, "/* Add CSS here... */");
-  editor.copyTpl(cssTpl, destCSS, { css });
+  if (css === defaultCss || css === "") {
+    editor.write(destCss, defaultCss);
+  } else {
+    editor.write(destCss, `* { ${css}  }`);
+  }
 };
