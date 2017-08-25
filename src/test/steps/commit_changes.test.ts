@@ -42,9 +42,10 @@ describe("commit changes", () => {
     });
 
     it("should save files to the root of the v1 app folder", async () => {
+      expect(options.get("dest")).not.to.exist;
       options = await subject(options);
       dest = options.get("dest");
-      expect(dest).not.to.match(/\/v2$/);
+      expect(dest).to.equal(src);
       expect(test("-e", `${dest}/src/javascripts/legacy_app.js`)).to.be.true;
     });
 
