@@ -1,4 +1,5 @@
 import { Map } from "immutable";
+import { format } from "prettier";
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
@@ -17,9 +18,16 @@ export default async (options: Map<string, any>) => {
   const cssTpl = "./src/templates/css.ejs";
   const destCSS = `${dest}/src/stylesheets/app.scss`;
   const defaultCss = "/* Add CSS here... */";
-  const css = editor.read(`${src}/app.css`, {
+  let css = editor.read(`${src}/app.css`, {
     defaults: defaultCss
   });
-
-  editor.copyTpl(cssTpl, destCSS, { css, importZendeskMenus });
+  css = css.trim();
+  css = !css.length ? defaultCss : css;
+  if (css !== defaultCss) {
+    css = `* { ${css}  }`;
+  }
+  if (importZendeskMenus) {
+    css = `@import "./zendesk_menus";${css}`;
+  }
+  editor.write(destCSS, format(css, { parser: "postcss" }));
 };
