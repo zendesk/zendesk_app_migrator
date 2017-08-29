@@ -4,7 +4,41 @@ import Base64 from "base64";
 window.helpers = helpers;
 window.Base64 = Base64;
 
-<%- helpers %>
+<% if (helpers.async) { %>
+const wrapZafClient = async (apiPath, ...rest) => {
+  try {
+    let result;
+    const client = ZAFClient.init();
+    // If we have args, this is a set or invoke.
+    // Everything else should be a get
+    // Use destructuring to get the value from path on 
+    // result object
+    if (rest.length) {
+      ({ [apiPath]: result } = await client.set(apiPath, ...rest));
+    } else {
+      ({ [apiPath]: result } = await client.get(apiPath));
+    }
+    return result;
+  } catch ({ message }) {
+    console.error(message);
+  }
+};
+<% }; %>
+
+<% if (helpers.menus) { %>
+import ZendeskMenus from "zendesk_menus";
+const {
+  Menu,
+  SelectMenu,
+  ComboSelectMenu,
+  MenuUtils: {
+    makeJqueryPlugin
+  }
+} = ZendeskMenus;
+makeJqueryPlugin('zdMenu', Menu);
+makeJqueryPlugin('zdSelectMenu', SelectMenu);
+makeJqueryPlugin('zdComboSelectMenu', ComboSelectMenu);
+<% }; %>
 
 const App = <%- code %>
 
