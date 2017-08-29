@@ -36,8 +36,7 @@ export function findLowestDepthPath(ast, type: string) {
   let lowestDepth = Number.POSITIVE_INFINITY;
   let lowestDepthPath;
   traverse(ast, {
-    enter(path) {
-      if (!types[`is${type}`](path)) return;
+    [type](path) {
       const depth = getDepthOfPath(path);
       if (!lowestDepthPath) {
         lowestDepthPath = path;
