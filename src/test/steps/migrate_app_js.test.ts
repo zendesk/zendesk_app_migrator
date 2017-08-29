@@ -2,8 +2,9 @@ import { expect } from "chai";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import { format } from "prettier";
+import { minify } from "uglify-es";
 import subject from "../../steps/migrate_app_js";
-import { Map } from "immutable";
+// import { Map } from "immutable";
 
 describe("migrate app js", () => {
   let editor;
@@ -14,7 +15,7 @@ describe("migrate app js", () => {
 
   beforeEach(() => {
     editor = fsEditor.create(memFs.create());
-    options = Map({ src, dest, editor });
+    options = new Map([["src", src], ["dest", dest], ["editor", editor]]);
   });
 
   describe("with an empty v1 app.js file", () => {
@@ -39,16 +40,18 @@ describe("migrate app js", () => {
   describe("with a v1 app.js file", () => {
     it("should extract the v1 return statement into src/javascripts/legacy_app.js", async () => {
       await subject(options);
-      const code = format(editor.read(`${dest}/src/javascripts/legacy_app.js`));
-      const expected = format(`
-      const App = (function() {
-        return {
-          events: { "app.activated": "init" },
-          foo: require("foo"),
-          init() {}
-        };
-      })()
-    `);
+      const { code } = minify(
+        editor.read(`${dest}/src/javascripts/legacy_app.js`)
+      );
+      const { code: expected } = minify(`
+        const App = (function() {
+          return {
+            events: { "app.activated": "init" },
+            foo: require("./lib/foo"),
+            init() {}
+          };
+        })()
+      `);
       expect(code).to.have.string(expected);
     });
 
@@ -59,10 +62,6 @@ describe("migrate app js", () => {
     });
 
     describe("when there are common js modules", () => {
-      beforeEach(() => {
-        options = options.set("hasCommonJS", true);
-      });
-
       it("should update require statements in app.js to be relative", async () => {
         await subject(options);
         expect(editor.read(`${dest}/src/javascripts/legacy_app.js`)).to.match(

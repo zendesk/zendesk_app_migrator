@@ -3,6 +3,7 @@ import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import subject from "../../steps/migrate_app_css";
 import { Map } from "immutable";
+import { format } from "prettier";
 
 describe("migrate app css", () => {
   let editor;
@@ -34,7 +35,7 @@ describe("migrate app css", () => {
     editor.write(`${src}/app.css`, "");
     await subject(options);
     const css = editor.read(`${dest}/src/stylesheets/app.scss`);
-    expect(css).to.equal(defaultCss);
+    expect(css).to.equal(format(defaultCss, { parser: "postcss" }));
     editor.write(`${src}/app.css`, originalCss);
   });
 });
