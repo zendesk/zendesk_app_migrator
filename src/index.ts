@@ -1,6 +1,5 @@
 import { statSync } from "fs";
 import { resolve } from "path";
-import * as mkdirp from "mkdirp";
 import * as chalk from "chalk";
 import * as meow from "meow";
 import * as emoji from "node-emoji";

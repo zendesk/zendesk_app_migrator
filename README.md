@@ -1,10 +1,10 @@
-## Zendesk App Migrator
+## Zendesk App Migration Helper
 
 [![Build Status](https://travis-ci.com/zendesk/zendesk_app_migrator.svg?token=NrEwEcTp68fyVJNwBJNv&branch=master)](https://travis-ci.com/zendesk/zendesk_app_migrator)
 
 ### What is it?
 
-The App Migrator ("ZAF") is CLI tool for assisting with the migration of v1 App Framework apps to v2
+The App Migration Helper is CLI tool for assisting with the migration of v1 App Framework apps to v2
 
 ### How does it work?
 

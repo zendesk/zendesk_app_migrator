@@ -6,9 +6,9 @@ import { dirname, sep, join } from "path";
 import { Map } from "immutable";
 import * as chalk from "chalk";
 
-export function tryResolve(path: string): boolean {
+function tryResolve(path: string): boolean {
   try {
-    const resolved = require.resolve(path);
+    require.resolve(path);
     return true;
   } catch (error) {
     return false;
@@ -51,7 +51,33 @@ export function findLowestDepthPath(ast, type: string) {
   return lowestDepthPath;
 }
 
-export function requireStatementProcessorFactory(options: Map<string, any>) {
+function findModuleWithinDirs(
+  modulePath: string,
+  dirs: string[],
+  src: string
+): string {
+  let dir,
+    newModulePath = modulePath;
+  while (dirs.pop() !== "lib" && dirs.length > 0) {
+    const remainingDirs = dirs.join(sep);
+    const lookInDir = join(src, remainingDirs, newModulePath);
+    newModulePath = join("..", newModulePath);
+    if (tryResolve(lookInDir)) return newModulePath;
+  }
+}
+
+function relativeModulePath(modulePath: string, fileDir: string): string {
+  const paths: string[] = [];
+  if (modulePath.indexOf("./") === -1) paths.push(".");
+  if (fileDir === ".") paths.push("lib");
+  paths.push(modulePath);
+  return paths.join(sep);
+}
+
+export function requireStatementProcessorFactory(
+  options: Map<string, any>,
+  pretty = true
+) {
   const src = options.get("src");
   return (code: Buffer | string, filePath: string) => {
     const ast = parse(code.toString());
@@ -59,9 +85,9 @@ export function requireStatementProcessorFactory(options: Map<string, any>) {
       new RegExp(`${join(src, sep)}`),
       ""
     );
-    let fileDir = dirname(filePathWithoutSrc);
-    fileDir = fileDir === "." ? "lib" : fileDir;
-    const dirs = fileDir.split(sep);
+    const fileDir = dirname(filePathWithoutSrc);
+    const baseDir = fileDir === "." ? "lib" : fileDir;
+    const dirs = baseDir.split(sep);
     traverse(ast, {
       CallExpression(path) {
         const node = path.node;
@@ -72,26 +98,20 @@ export function requireStatementProcessorFactory(options: Map<string, any>) {
             .value;
           // Check whether the module can be resolved by node
           // based on the existing path value
-          const fp = join(src, fileDir, modulePath);
+          const fp = join(src, baseDir, modulePath);
           if (tryResolve(fp)) {
-            (path.node.arguments[0] as types.StringLiteral).value =
-              modulePath.indexOf("./") === 0 ? modulePath : `./${modulePath}`;
+            path
+              .get("arguments.0")
+              .replaceWith(
+                types.stringLiteral(relativeModulePath(modulePath, fileDir))
+              );
           } else {
-            let dir,
-              found = false,
-              newModulePath = modulePath;
-            while (dirs.pop() !== "lib" && dirs.length > 0) {
-              const remainingDirs = dirs.join(sep);
-              const lookInDir = join(src, remainingDirs, newModulePath);
-              newModulePath = `../${newModulePath}`;
-              if (tryResolve(lookInDir)) {
-                (path.node
-                  .arguments[0] as types.StringLiteral).value = newModulePath;
-                found = true;
-                break;
-              }
-            }
-            if (!found) {
+            const foundModulePath = findModuleWithinDirs(modulePath, dirs, src);
+            if (foundModulePath) {
+              path
+                .get("arguments.0")
+                .replaceWith(types.stringLiteral(foundModulePath));
+            } else {
               throw new Error(
                 `Unable to resolve Common JS module: ${modulePath}`
               );

@@ -16,6 +16,10 @@ export default async (options: Map<string, any>) => {
   // Copy and reformat `./app.css`
   const cssTpl = "./src/templates/css.ejs";
   const destCSS = `${dest}/src/stylesheets/app.scss`;
-  const css = editor.read(`${src}/app.css`, "/* Add CSS here... */");
+  const defaultCss = "/* Add CSS here... */";
+  const css = editor.read(`${src}/app.css`, {
+    defaults: defaultCss
+  });
+
   editor.copyTpl(cssTpl, destCSS, { css, importZendeskMenus });
 };

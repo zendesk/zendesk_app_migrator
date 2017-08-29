@@ -1,10 +1,10 @@
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-const expect = chai.expect;
+const { expect } = chai;
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
-import correctVersion from "../../steps/correct_version";
+import subject from "../../steps/correct_version";
 import { fromJS, Map } from "immutable";
 describe("correct version", () => {
   let editor;
@@ -23,21 +23,21 @@ describe("correct version", () => {
     editor.writeJSON("v1/manifest.json", {
       frameworkVersion: "1.0"
     });
-    return expect(correctVersion(options)).to.eventually.be.fulfilled;
+    return expect(subject(options)).to.eventually.be.fulfilled;
   });
 
   it("should raise an exception with a version >= 2.0", () => {
     editor.writeJSON("v1/manifest.json", {
       frameworkVersion: "2.0"
     });
-    return expect(correctVersion(options)).to.eventually.be.rejectedWith(
+    return expect(subject(options)).to.eventually.be.rejectedWith(
       Error,
       /"frameworkVersion" parameter must be less than 2.0/
     );
   });
 
   it("should raise an exception with no manifest file", () => {
-    return expect(correctVersion(options)).to.eventually.be.rejectedWith(
+    return expect(subject(options)).to.eventually.be.rejectedWith(
       Error,
       /"frameworkVersion" parameter must be less than 2.0/
     );
