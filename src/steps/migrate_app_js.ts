@@ -2,15 +2,9 @@ import { parse } from "babylon";
 import * as types from "babel-types";
 import traverse from "babel-traverse";
 import generate from "babel-generator";
-import { Map } from "immutable";
-import { uniqueId, compact, uniq, chain, last, get } from "lodash";
+import { compact, uniq, chain, get } from "lodash";
 import { format } from "prettier";
-import * as chalk from "chalk";
-import {
-  getDepthOfPath,
-  findLowestDepthPath,
-  requireStatementProcessorFactory
-} from "../utils";
+import { getDepthOfPath, findLowestDepthPath } from "../utils";
 
 interface IManifest {
   [key: string]: any; // number | object | string | boolean
@@ -30,224 +24,183 @@ function hasLocation(manifest: IManifest, name: string): boolean {
     .value();
 }
 
-function buildMemberExpressionFromCache(
-  names: string[],
-  apiCache = {}
-): types.Expression {
-  let id: string, newExpression: types.Expression, partId: string;
-  const leafName: string = last<string>(names);
-  console.log(names);
-  const missingParts: string[] = [];
-  const parts: string[] = names.length > 1 ? names.slice(0, -1) : names.slice();
-  while ((partId = parts.pop())) {
-    if ((id = apiCache[partId])) {
-      // We have a match. The preceding part was already declared
-      missingParts.push(leafName);
-      newExpression = types.memberExpression(
-        types.identifier(id),
-        types.identifier(missingParts.shift())
-      );
-      if (missingParts.length) {
-        let missingPartId: string;
-        while ((missingPartId = missingParts.shift())) {
-          newExpression = types.memberExpression(
-            newExpression,
-            types.identifier(missingPartId)
-          );
-        }
-      }
-      break;
-    } else {
-      missingParts.unshift(partId);
-    }
-  }
-  return newExpression;
+function isRequire(path) {
+  return (
+    path.get("callee").isIdentifier() &&
+    path.node.callee.name === "require" &&
+    path.get("arguments.0").isStringLiteral()
+  );
 }
 
-function findCallExpression(initialPath, path) {
-  let toGet: string;
-  const names: string[] = [];
-  console.log(generate(initialPath.node).code, initialPath.node.type);
-  const lastPath = initialPath.findParent(p => {
-    const pp = p.parentPath;
-    console.log(pp.node.type);
-    if (pp.isMemberExpression() || pp.isCallExpression()) {
-      if (Array.isArray(p.container) && p.container.length) return true;
-      if (p.isMemberExpression() && p.node.property.name !== "bind") {
-        names.push(p.node.property.name);
+function replaceReferencesForBinding(binding) {
+  let exp;
+  // const parentName = exp.parent.id.name;
+  if (binding.referenced) {
+    const name = binding.identifier.name;
+    binding.referencePaths.forEach(p => {
+      const { exp: e, names: n } = getExpressionToReplace(p);
+      if (n.length) {
+        e.replaceWithSourceString(`${name}${"." + n.join(".")}`);
+        if (e.parentPath.isVariableDeclarator()) {
+          replaceReferencesForBinding(
+            e.parentPath.scope.bindings[e.parent.id.name]
+          );
+        } else if (
+          e.inList &&
+          (exp = e.getSibling(e.key + 1)) &&
+          exp.isFunctionExpression() &&
+          exp.node.params.length
+        ) {
+          const b = exp.scope.bindings[exp.get("params.0").node.name];
+          replaceReferencesForBinding(b);
+        }
+      }
+    });
+  }
+}
+
+function getExpressionToReplace(path) {
+  const names = [],
+    exp = path.findParent(path => {
+      if (
+        (!path.parentPath.isMemberExpression() &&
+          !path.parentPath.isCallExpression()) ||
+        ((path.isCallExpression() && path.inList) ||
+          (path.parentPath.isMemberExpression() &&
+            /^(then|bind)$/.test(path.parent.property.name)))
+      ) {
+        return true;
+      }
+      if (path.isMemberExpression()) {
+        names.push(path.node.property.name);
       }
       return false;
-    }
-    return true;
-  });
-
-  toGet = lastPath.inList
-    ? `${lastPath.listKey}.${lastPath.key}`
-    : lastPath.parentKey;
-  const args: any[] =
-    (lastPath.isCallExpression() &&
-      lastPath.node.arguments.length &&
-      lastPath.node.arguments) ||
-    [];
-  console.log(toGet);
-  return { parentStatementPath: lastPath.parentPath, toGet, names, args };
+    });
+  return {
+    exp,
+    names
+  };
 }
 
-function getOwnApiScope(path, ownApis: Map<string, any>) {
-  const op = path.findParent(pth => {
-    return pth.isObjectProperty() && ownApis.has(pth.node.key.name);
-  });
-  if (!op || !types.isFunctionExpression(op.node.value)) {
-    return path.getFunctionParent().scope;
-  }
-  return op.get("value").scope;
-}
-
-const syncToAsyncVisitor = {
-  Identifier(idPath, { path, name, v1Apis, ownApis, identifierCache }) {
-    let apiCache,
-      apiName = idPath.node.name,
-      isV1Api = !!v1Apis[apiName],
-      isOwnApi = !isV1Api && ownApis.has(apiName);
-    if ((!isOwnApi && !isV1Api) || apiName === name) return;
-    if (isOwnApi) {
-      const apiPath = ownApis.get(apiName);
-      if (apiPath.isObjectProperty()) {
-        if (
-          types.isFunctionExpression(apiPath.node.value) &&
-          !apiPath.node.value.async
-        )
-          return;
+const migrateJsVisitor = {
+  StringLiteral(path) {
+    if (
+      path.isObjectProperty() &&
+      path.get("value").isObjectExpression() &&
+      path.node.key.name === "events"
+    ) {
+      if (path.node.value === "pane.activated") {
+        path.node.value = "app.activated";
+        path.stop();
       }
     }
-    let newExpression: types.Expression,
-      parentStatementPath,
-      toGet,
-      names,
-      args;
-    // Initialise the api cache for this app function
-    apiCache = identifierCache[name] || (identifierCache[name] = {});
-    // We only care about this expressions that are either a v1 api call
-    // or a call to an app function that has become async
-    if (types.isThisExpression(idPath.parent.object) && apiName) {
-      ({ names, toGet, parentStatementPath, args } = findCallExpression(
-        idPath,
-        path
-      ));
-      // Get the containing scope, this should be the scope of the app
-      // function being iterated on
-      const scope = getOwnApiScope(parentStatementPath, ownApis);
-      // If this is a v1 api call, and we have args we should just do
-      // a replacement for a wrapped SDK call
-      if (isV1Api && args.length) {
-        newExpression = types.awaitExpression(
-          types.callExpression(types.identifier("wrapZafClient"), [
-            types.stringLiteral(names.join(".")),
-            ...args
-          ])
-        );
-        parentStatementPath.get(toGet).replaceWith(newExpression);
-        parentStatementPath.get(toGet).skip();
-        return;
-      }
-      // We can simply wrap and replace an own api in an await
-      if (isOwnApi) {
-        const toReplaceExpression: types.Expression = parentStatementPath.get(
-          toGet
-        ).node;
-        if (!types.isAwaitExpression(toReplaceExpression)) {
-          newExpression = types.awaitExpression(toReplaceExpression);
-          parentStatementPath.get(toGet).replaceWith(newExpression);
-          parentStatementPath.get(toGet).skip();
-        }
-        return;
-      }
-      // Try build an expression using a previously defined binding
-      // If there wasn't any previously defined binding, create one
-      if (!(newExpression = buildMemberExpressionFromCache(names, apiCache))) {
-        const awaitExpression = types.awaitExpression(
-          types.callExpression(types.identifier("wrapZafClient"), [
-            types.stringLiteral(apiName)
-          ])
-        );
-        // If the parent is a declaration, we can reuse that binding
-        // otherwise, add a new binding for the v1 api call
+  },
+  "ObjectProperty|ObjectMethod"(path, { cache, container }) {
+    if (!(path.inList && container.includes(path))) return;
+    const vp = path.isObjectProperty() ? path.get("value") : path.get("body");
+    if (
+      (vp.isFunctionExpression() && !cache.has(path.node.key.name)) ||
+      vp.isCallExpression() ||
+      vp.isBlockStatement()
+    ) {
+      let arg,
+        scope = vp.scope;
+      if (!scope) {
         if (
-          !parentStatementPath.isVariableDeclarator() ||
-          (parentStatementPath.isVariableDeclarator() && names.length > 1)
+          vp.isCallExpression() &&
+          (arg = vp.get("arguments.0")) &&
+          arg.isFunctionExpression()
         ) {
-          const id = scope.generateUidIdentifier(apiName);
-          scope.push({
-            id,
-            kind: "const",
-            init: awaitExpression
-          });
-          apiCache[apiName] = id.name;
-          // Now that we have a binding, we can build a reference to that binding
-          newExpression = buildMemberExpressionFromCache(names, apiCache);
-        } else {
-          if (
-            parentStatementPath.node.id.name === apiName &&
-            scope.hasBinding(apiName) &&
-            scope.bindings[apiName].referenced
-          ) {
-            console.log("We have an existing declaration for:", apiName);
-            console.log(generate(parentStatementPath.get(toGet)).code, names);
-            const { name: newName } = scope.generateUidIdentifier(apiName);
-            apiCache[apiName] = newName;
-            scope.rename(apiName, newName);
-            // scope.bindings[newName].referencePaths.forEach(refPath => {
-            //   const {
-            //     names: n,
-            //     toGet: tg,
-            //     parentStatementPath: ps
-            //   } = findCallExpression(refPath, path);
-            //   const ne = buildMemberExpressionFromCache(
-            //     [apiName, ...n],
-            //     apiCache
-            //   );
-            //   console.log(generate(ps.get(tg)).code);
-            //   ps.get(tg).replaceWith(ne);
-            // });
-          }
-          newExpression = awaitExpression;
+          scope = arg.scope;
         }
       }
+      if (!scope) return;
+      // Note: we need to set the immutable map back to the state here,
+      // hence not destructuring the state argument. Destructuring _would_
+      // work for a native Map, but not an immutable
+      cache.set(path.node.key.name, { scope });
     }
-    if (!parentStatementPath || !newExpression) {
-      return;
+  },
+  CallExpression(path) {
+    if (isRequire(path)) {
+      const module = path.get("arguments.0").node.value;
+      if (!/^\.\/lib\//.test(module)) {
+        path.get("arguments.0").node.value = `./lib/${module}`;
+      }
     }
-    const parentStatementType = parentStatementPath.node.type;
-    switch (parentStatementType) {
-      case "VariableDeclarator":
-        parentStatementPath.get(toGet).replaceWith(newExpression);
-        const bindingName = parentStatementPath.node.id.name;
-        apiCache[bindingName] = bindingName;
-        break;
-
-      case "Property":
-      case "ObjectProperty":
-      case "IfStatement":
-      case "CallExpression":
-      case "AwaitExpression":
-      case "BinaryExpression":
-      case "AssignmentExpression":
-      case "ConditionalExpression":
-      case "ExpressionStatement":
-        const toReplacePath = parentStatementPath.get(toGet);
-        toReplacePath.replaceWith(newExpression);
-        break;
-
-      default:
-        console.log(`Missing: ${parentStatementPath.node.type}`);
-        console.log(generate(parentStatementPath.node).code, toGet);
+  },
+  MemberExpression(path, { cache, apis }) {
+    let name,
+      id,
+      obj,
+      toAsync = false;
+    if (!path.get("object").isThisExpression()) return;
+    const op = path.findParent(path => {
+      return path.isObjectProperty() && cache.has(path.node.key.name);
+    });
+    if (!op) return;
+    const opName = op.node.key.name;
+    const opCache = cache.get(opName);
+    name = path.node.property.name;
+    const { exp, names } = getExpressionToReplace(path);
+    if (/^zd((Combo)?Select)?Menu$/.test(name)) {
+      cache.set("importZendeskMenus", true);
     }
-
-    if (path.isFunctionExpression()) {
-      path.node.async = true;
-    } else if (path.isObjectProperty()) {
-      path.node.value.async = true;
+    if ((obj = cache.get(name)) && obj.async) {
+      exp.replaceWith(types.awaitExpression(exp.node));
+      exp.skip();
+      toAsync = true;
+    } else if (apis.has(name)) {
+      if (exp.node.arguments.length) {
+        exp.replaceWith(
+          types.awaitExpression(
+            types.callExpression(types.identifier("wrapZafClient"), [
+              types.stringLiteral(names.join(".")),
+              ...exp.node.arguments
+            ])
+          )
+        );
+        exp.skip();
+        toAsync = true;
+      } else if (exp.parentPath.isVariableDeclarator() && !names.length) {
+        // console.log("In here", generate(exp.node).code);
+        opCache[name] = exp.parent.id;
+        exp.replaceWith(
+          types.awaitExpression(
+            types.callExpression(types.identifier("wrapZafClient"), [
+              types.stringLiteral(name)
+            ])
+          )
+        );
+        const binding = opCache.scope.bindings[exp.parent.id.name];
+        replaceReferencesForBinding(binding);
+        toAsync = true;
+      } else if (!(id = opCache[name])) {
+        id = opCache.scope.generateUidIdentifier(name);
+        opCache.scope.push({
+          id,
+          kind: "const",
+          init: types.awaitExpression(
+            types.callExpression(types.identifier("wrapZafClient"), [
+              types.stringLiteral(name)
+            ])
+          )
+        });
+        opCache[name] = id;
+        toAsync = true;
+      }
+      if (id && names.length) {
+        exp.replaceWithSourceString(`${id.name}.${names.join(".")}`);
+        if (exp.parentPath.isVariableDeclarator()) {
+          const binding = opCache.scope.bindings[exp.parent.id.name];
+          replaceReferencesForBinding(binding);
+        }
+        toAsync = true;
+      }
     }
+    if (!toAsync) return;
+    op.node.value.async = true;
+    opCache.async = true;
   }
 };
 
@@ -256,7 +209,6 @@ export default async (options: Map<string, any>) => {
   const dest = options.get("dest");
   const editor = options.get("editor");
   const experimental: boolean = options.get("experimental");
-  const hasCommonJS: boolean = options.get("hasCommonJS");
   const appJS = editor.read(`${src}/app.js`);
 
   let code: string = `
@@ -265,7 +217,10 @@ export default async (options: Map<string, any>) => {
     }());
   `;
 
-  const copyOptions: { code: string; helpers?: string } = { code, helpers: "" };
+  const copyOptions: { code: string; helpers: { [key: string]: boolean } } = {
+    code,
+    helpers: {}
+  };
 
   // Parse all of the v1 app.js Javascript into an AST
   const ast = parse(appJS);
@@ -282,94 +237,49 @@ export default async (options: Map<string, any>) => {
     if (types.assertExpressionStatement(iifePath.node)) {
       ast.program = types.program([iifePath.node]);
     }
+
     if (experimental) {
       const manifestJson = editor.readJSON(`${src}/manifest.json`, {
         location: []
       });
 
-      const v1Apis: {
-        currentUser: boolean;
-        ticket?: boolean;
-        user?: boolean;
-        organization?: boolean;
-      } = {
-        currentUser: true, // Every location has currentUser
-        ticket: hasLocation(manifestJson, "ticket"),
-        user: hasLocation(manifestJson, "user"),
-        organization: hasLocation(manifestJson, "organization")
-      };
-      const ownApis = v1ReturnStatementPath
-        .get("argument.properties")
-        .filter(
-          path =>
-            types.isCallExpression(path.node.value) ||
-            types.isFunctionExpression(path.node.value)
-        )
-        .reduce((memo, path) => {
-          return memo.set(path.node.key.name, path);
-        }, Map());
+      const cache = new Map<
+        string,
+        { async?: boolean; scope?: {}; [key: string]: any }
+      >();
+      const apis = new Map<string, boolean>([
+        ["ticket", hasLocation(manifestJson, "ticket")],
+        ["user", hasLocation(manifestJson, "user")],
+        ["organization", hasLocation(manifestJson, "organization")],
+        ["currentUser", true]
+      ]);
+      // This is where all the changes will be made to the v1 AST
+      const container = v1ReturnStatementPath.get("argument.properties");
+      v1ReturnStatementPath.traverse(migrateJsVisitor, {
+        cache,
+        apis,
+        container
+      });
 
-      let isAsync = false;
-      const identifierCache = {};
-      for (let [name, path] of ownApis) {
-        if (types.isCallExpression(path.node.value)) {
-          const argPath = path.get("value.arguments.0");
-          if (argPath.isFunctionExpression()) {
-            path = argPath;
-          }
-        }
-
-        // FIXME? This is flakey, hard to say whether the first arg
-        // to a call expression will be the actual function
-        path.traverse(syncToAsyncVisitor, {
-          path,
-          name,
-          v1Apis,
-          ownApis,
-          identifierCache
-        });
-        if (!isAsync) {
-          isAsync = path.isFunctionExpression()
-            ? path.node.async
-            : path.node.value.async;
-        }
+      if (cache.has("importZendeskMenus")) {
+        editor.copy(
+          "./src/templates/zendesk_menus.js",
+          `${dest}/lib/javascripts/zendesk_menus.js`
+        );
+        editor.write(`${dest}/.eslintignore`, "**/zendesk_menus.js");
+        copyOptions.helpers.menus = true;
+        options = options.set("importZendeskMenus", true);
       }
 
-      if (isAsync && Object.keys(v1Apis).some(v => v1Apis[v])) {
-        // FIXME: This helper should go somewhere else.  It could potentially be
-        // included as an import?
-        copyOptions.helpers = `
-          const wrapZafClient = async (apiPath, ...rest) => {
-            try {
-              let result;
-              const client = ZAFClient.init();
-              // If we have args, this is a set or invoke.
-              // Everything else should be a get
-              // Use destructuring to get the value from path on 
-              // result object
-              if (rest.length) {
-                ({ [apiPath]: result } = await client.set(apiPath, ...rest));
-              } else {
-                ({ [apiPath]: result } = await client.get(apiPath));
-              }
-              return result;
-            } catch ({ message }) {
-              console.error(message);
-            }
-          };
-        `;
+      // If any of the methods have been changed to async (because they _now_ use the SDK)
+      // This should only be the case if the app uses a core API, like `this.currentUser()`, or
+      // if it uses a location-specific API, like `this.user()` or `this.ticket()`
+      for (const [key, value] of cache) {
+        if ((copyOptions.helpers.async = get(value, "async", false))) break;
       }
     }
     // Generate the final JavaScript for the app subclass definition
-    code = generate(ast).code;
-
-    // Check whether the migrate_common_js step discovered some Common JS files
-    if (hasCommonJS) {
-      const requireProcessor = requireStatementProcessorFactory(options);
-      requireProcessor(code, `${src}/app.js`);
-    }
-
-    copyOptions.code = code;
+    copyOptions.code = generate(ast).code;
   }
 
   const indexTpl = "./src/templates/legacy_app.ejs";
@@ -379,4 +289,5 @@ export default async (options: Map<string, any>) => {
   // it _should_ allow a process function that would make it possible
   // to format the contents of the file during the copy operation... :(
   editor.write(destJS, format(editor.read(destJS)));
+  return options;
 };
