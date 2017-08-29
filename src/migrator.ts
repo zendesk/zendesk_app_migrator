@@ -5,6 +5,7 @@ import * as fsEditor from "mem-fs-editor";
 import { emojify } from "node-emoji";
 import * as ProgressBar from "progress";
 import { List, Map } from "immutable";
+import { prompt } from "inquirer";
 
 // This monkeypatch is necessary for for–await-of to work in Typescript v2.4+
 (Symbol as any).asyncIterator =
@@ -81,6 +82,25 @@ class Migrator {
     const options: Map<string, any> = Map({
       editor
     }).merge(cliOptions);
+
+    if (cliOptions.experimental) {
+      const { experiment } = await prompt([
+        {
+          type: "confirm",
+          name: "experiment",
+          message: `You've used the ${chalk.bold(
+            "experimental"
+          )} flag.  Experimental features may be unstable, do you wish to proceed anyway?`,
+          default: true
+        }
+      ]);
+      if (!experiment) {
+        console.log(
+          chalk.bold.red(`Migration cancelled ${emojify(":crying_cat_face:")}`)
+        );
+        return;
+      }
+    }
     // Iterate asynchronously through the steps,
     // passing the resulting options object from each step
     // into the next step
