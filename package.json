@@ -17,10 +17,7 @@
         "postversion": "git push --follow-tags && yarn publish",
         "test-watch": "nodemon --watch src --ext ts --exec yarn test"
     },
-    "author": {
-        "name": "Zendesk",
-        "email": "support@zendesk.com"
-    },
+    "author": "Zendesk <support@zendesk.com>",
     "license": "Apache-2.0",
     "dependencies": {
         "app_scaffold": "github:zendesk/app_scaffold#v0.1.x",
@@ -40,7 +37,7 @@
         "mem-fs-editor": "^3.0.2",
         "meow": "^3.7.0",
         "node-emoji": "^1.8.1",
-        "prettier": "^1.5.3",
+        "prettier": "^1.6.1",
         "progress": "^2.0.0",
         "recast": "^0.12.6",
         "shelljs": "^0.7.8",
@@ -69,5 +66,6 @@
         "ts-node": "^3.3.0",
         "typescript": "^2.4.2",
         "uglify-es": "^3.0.28"
-    }
+    },
+    "repository": "git@github.com:zendesk/zendesk_app_migrator.git"
 }
