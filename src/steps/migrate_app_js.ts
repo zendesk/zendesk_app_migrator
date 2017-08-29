@@ -121,14 +121,6 @@ const migrateJsVisitor = {
       cache.set(path.node.key.name, { scope });
     }
   },
-  CallExpression(path) {
-    if (isRequire(path)) {
-      const module = path.get("arguments.0").node.value;
-      if (!/^\.\/lib\//.test(module)) {
-        path.get("arguments.0").node.value = `./lib/${module}`;
-      }
-    }
-  },
   MemberExpression(path, { cache, apis }) {
     let name,
       id,
@@ -227,16 +219,30 @@ export default async (options: Map<string, any>) => {
 
   // Traverse the AST to find the v1 `return` statement that actually
   // returns the app subclass
-  const v1ReturnStatementPath = findLowestDepthPath(ast, "ReturnStatement");
-
-  if (v1ReturnStatementPath) {
-    const iifePath = v1ReturnStatementPath.findParent(path =>
+  const returnStatementPath = findLowestDepthPath(ast, "ReturnStatement");
+  if (returnStatementPath) {
+    const iifePath = returnStatementPath.findParent(path =>
       path.isExpressionStatement()
     );
-
-    if (types.assertExpressionStatement(iifePath.node)) {
+    if (iifePath.isExpressionStatement()) {
       ast.program = types.program([iifePath.node]);
     }
+    // Process any require statements to make them
+    // relative to the lib folder.  No need to actually
+    // resolve a file here
+    returnStatementPath.traverse({
+      CallExpression(path) {
+        if (isRequire(path)) {
+          const pathToModule = path.get("arguments.0").node.value;
+          if (!/^\.\/lib\//.test(pathToModule)) {
+            console.log("Yo");
+            path
+              .get("arguments.0")
+              .replaceWithSourceString(`"./lib/${pathToModule}"`);
+          }
+        }
+      }
+    });
 
     if (experimental) {
       const manifestJson = editor.readJSON(`${src}/manifest.json`, {
@@ -254,8 +260,8 @@ export default async (options: Map<string, any>) => {
         ["currentUser", true]
       ]);
       // This is where all the changes will be made to the v1 AST
-      const container = v1ReturnStatementPath.get("argument.properties");
-      v1ReturnStatementPath.traverse(migrateJsVisitor, {
+      const container = returnStatementPath.get("argument.properties");
+      returnStatementPath.traverse(migrateJsVisitor, {
         cache,
         apis,
         container
