@@ -15,16 +15,22 @@ export default async (options: Map<string, any>) => {
   // It _may_ be OK to leave it here, as it _may_ be OK for the
   // Migrator to be more permissive, in the interests of getting
   // a migrated v1 app working as much as possible.
+  const rules = [
+    "unused-vars",
+    "undef",
+    "console",
+    "unreachable",
+    "debugger"
+  ].reduce((memo, rule) => {
+    memo[`no-${rule}`] = 0;
+    return memo;
+  }, {});
   const migratorConfig = eslintConfig.merge({
     root: true,
+    rules,
     globals: {
       helpers: true,
       Base64: true
-    },
-    rules: {
-      "no-unused-vars": 0,
-      "no-undef": 0,
-      "no-console": 0
     }
   });
   editor.writeJSON(`${dest}/.eslintrc`, migratorConfig);
