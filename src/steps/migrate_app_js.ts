@@ -111,7 +111,9 @@ const migrateJsVisitor = {
       }
     }
   },
-  "ObjectProperty|ObjectMethod"(path, { cache, container }) {
+  "ObjectProperty|ObjectMethod"(path, { cache, container, asyncMethods }) {
+    // If we have asyncMethods, it means we already have all the method names
+    if (asyncMethods) return;
     if (!(path.inList && container.includes(path))) return;
     const vp = path.isObjectProperty() ? path.get("value") : path.get("body");
     if (
@@ -137,11 +139,15 @@ const migrateJsVisitor = {
       cache.set(path.node.key.name, { scope });
     }
   },
-  MemberExpression(path, { cache, apis }) {
-    let name,
+  MemberExpression(path, { cache, apis, methodName, asyncMethods }) {
+    let name = path.node.property.name,
       id,
       obj,
       toAsync = false;
+    if (/^zd((Combo)?Select)?Menu$/.test(name)) {
+      cache.set("importZendeskMenus", true);
+      return;
+    }
     if (!path.get("object").isThisExpression()) return;
     const op = path.findParent(path => {
       return path.isObjectProperty() && cache.has(path.node.key.name);
@@ -149,11 +155,8 @@ const migrateJsVisitor = {
     if (!op) return;
     const opName = op.node.key.name;
     const opCache = cache.get(opName);
-    name = path.node.property.name;
+    if ((methodName && name !== methodName) || opName === methodName) return;
     const { exp, names } = getExpressionToReplace(path);
-    if (/^zd((Combo)?Select)?Menu$/.test(name)) {
-      cache.set("importZendeskMenus", true);
-    }
     if ((obj = cache.get(name)) && obj.async) {
       exp.replaceWith(types.awaitExpression(exp.node));
       exp.skip();
@@ -166,7 +169,6 @@ const migrateJsVisitor = {
         exp.skip();
         toAsync = true;
       } else if (exp.parentPath.isVariableDeclarator() && !names.length) {
-        // console.log("In here", generate(exp.node).code);
         opCache[name] = exp.parent.id;
         exp.replaceWith(buildWrapZafClientExpression(name));
         const binding = opCache.scope.bindings[exp.parent.id.name];
@@ -192,6 +194,9 @@ const migrateJsVisitor = {
       }
     }
     if (!toAsync) return;
+    if (asyncMethods && !asyncMethods.includes(opName)) {
+      asyncMethods.push(opName);
+    }
     op.node.value.async = true;
     opCache.async = true;
   }
@@ -236,7 +241,6 @@ export default async (options: Map<string, any>) => {
         if (isRequire(path)) {
           const pathToModule = path.get("arguments.0").node.value;
           if (!/^\.\/lib\//.test(pathToModule)) {
-            console.log("Yo");
             path
               .get("arguments.0")
               .replaceWithSourceString(`"./lib/${pathToModule}"`);
@@ -252,13 +256,14 @@ export default async (options: Map<string, any>) => {
 
       const cache = new Map<
         string,
-        { async?: boolean; scope?: {}; [key: string]: any }
+        { async?: boolean; scope?: {}; boolean; [key: string]: any }
       >();
       const apis = new Map<string, boolean>([
         ["ticket", hasLocation(manifestJson, "ticket")],
         ["user", hasLocation(manifestJson, "user")],
         ["organization", hasLocation(manifestJson, "organization")],
-        ["currentUser", true]
+        ["currentUser", true],
+        ["currentAccount", true]
       ]);
       // This is where all the changes will be made to the v1 AST
       const container = returnStatementPath.get("argument.properties");
@@ -267,6 +272,27 @@ export default async (options: Map<string, any>) => {
         apis,
         container
       });
+
+      // It's possible at this point that there are some app methods that have
+      // become async, and are being called from another method.  The migrateJsVisitor tries
+      // to update these references as it processes each node, but can only do so when they appear
+      // in a method _after_ the one currently being processed.  We'll need to repeatedly process
+      // until all references to async methods have await statements
+      const asyncMethods = [];
+      for (const [methodName, meta] of cache) {
+        if (methodName !== "importZendeskMenus" && meta.async)
+          asyncMethods.push(methodName);
+      }
+      let methodName;
+      while ((methodName = asyncMethods.pop())) {
+        returnStatementPath.traverse(migrateJsVisitor, {
+          cache,
+          apis,
+          container,
+          methodName,
+          asyncMethods
+        });
+      }
 
       if (cache.has("importZendeskMenus")) {
         editor.copy(
