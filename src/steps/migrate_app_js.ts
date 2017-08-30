@@ -30,7 +30,6 @@ function hasLocation(manifest: IManifest, name: string): boolean {
 
 function replaceReferencesForBinding(binding) {
   let exp;
-  // const parentName = exp.parent.id.name;
   if (binding.referenced) {
     const name = binding.identifier.name;
     binding.referencePaths.forEach(p => {
