@@ -82,6 +82,22 @@ function getExpressionToReplace(path) {
   };
 }
 
+function buildWrapZafClientExpression(
+  path: string | string[],
+  ...rest
+): types.AwaitExpression {
+  if (Array.isArray(path)) path = path.join(".");
+  return types.awaitExpression(
+    types.callExpression(types.identifier("wrapZafClient"), [
+      types.memberExpression(
+        types.thisExpression(),
+        types.identifier("zafClient")
+      ),
+      types.stringLiteral(path)
+    ])
+  );
+}
+
 const migrateJsVisitor = {
   StringLiteral(path) {
     if (
@@ -145,25 +161,14 @@ const migrateJsVisitor = {
     } else if (apis.has(name)) {
       if (exp.node.arguments.length) {
         exp.replaceWith(
-          types.awaitExpression(
-            types.callExpression(types.identifier("wrapZafClient"), [
-              types.stringLiteral(names.join(".")),
-              ...exp.node.arguments
-            ])
-          )
+          buildWrapZafClientExpression(names, ...exp.node.arguments)
         );
         exp.skip();
         toAsync = true;
       } else if (exp.parentPath.isVariableDeclarator() && !names.length) {
         // console.log("In here", generate(exp.node).code);
         opCache[name] = exp.parent.id;
-        exp.replaceWith(
-          types.awaitExpression(
-            types.callExpression(types.identifier("wrapZafClient"), [
-              types.stringLiteral(name)
-            ])
-          )
-        );
+        exp.replaceWith(buildWrapZafClientExpression(name));
         const binding = opCache.scope.bindings[exp.parent.id.name];
         replaceReferencesForBinding(binding);
         toAsync = true;
@@ -172,11 +177,7 @@ const migrateJsVisitor = {
         opCache.scope.push({
           id,
           kind: "const",
-          init: types.awaitExpression(
-            types.callExpression(types.identifier("wrapZafClient"), [
-              types.stringLiteral(name)
-            ])
-          )
+          init: buildWrapZafClientExpression(name)
         });
         opCache[name] = id;
         toAsync = true;

@@ -5,10 +5,10 @@ window.helpers = helpers;
 window.Base64 = Base64;
 
 <% if (helpers.async) { %>
-const wrapZafClient = async (apiPath, ...rest) => {
+const wrapZafClient = async (client, apiPath, ...rest) => {
   try {
     let result;
-    const client = ZAFClient.init();
+    // const client = ZAFClient.init();
     // If we have args, this is a set or invoke.
     // Everything else should be a get
     // Use destructuring to get the value from path on 
