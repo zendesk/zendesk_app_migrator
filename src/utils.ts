@@ -15,11 +15,11 @@ function tryResolve(path: string): boolean {
   }
 }
 
-function isRequireStatement(node) {
+export function isRequireStatement(path) {
   return (
-    types.isCallExpression(node) &&
-    types.isIdentifier(node.callee) &&
-    node.callee.name === "require"
+    path.isCallExpression() &&
+    path.get("callee").isIdentifier() &&
+    path.node.callee.name === "require"
   );
 }
 
@@ -91,7 +91,7 @@ export function requireStatementProcessorFactory(
       CallExpression(path) {
         const node = path.node;
         // Check whether there are any calls to `require("some_module")`
-        if (isRequireStatement(path.node)) {
+        if (isRequireStatement(path)) {
           // Keep the path to the module
           let modulePath = (path.node.arguments[0] as types.StringLiteral)
             .value;

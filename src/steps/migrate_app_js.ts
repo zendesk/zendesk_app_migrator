@@ -4,7 +4,11 @@ import traverse from "babel-traverse";
 import generate from "babel-generator";
 import { compact, uniq, chain, get } from "lodash";
 import { format } from "prettier";
-import { getDepthOfPath, findLowestDepthPath } from "../utils";
+import {
+  getDepthOfPath,
+  findLowestDepthPath,
+  isRequireStatement
+} from "../utils";
 
 interface IManifest {
   [key: string]: any; // number | object | string | boolean
@@ -22,14 +26,6 @@ function hasLocation(manifest: IManifest, name: string): boolean {
     .uniq()
     .some((loc: string) => new RegExp(name).test(loc))
     .value();
-}
-
-function isRequire(path) {
-  return (
-    path.get("callee").isIdentifier() &&
-    path.node.callee.name === "require" &&
-    path.get("arguments.0").isStringLiteral()
-  );
 }
 
 function replaceReferencesForBinding(binding) {
@@ -238,7 +234,7 @@ export default async (options: Map<string, any>) => {
     // resolve a file here
     returnStatementPath.traverse({
       CallExpression(path) {
-        if (isRequire(path)) {
+        if (isRequireStatement(path)) {
           const pathToModule = path.get("arguments.0").node.value;
           if (!/^\.\/lib\//.test(pathToModule)) {
             path
