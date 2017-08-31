@@ -162,11 +162,18 @@ const migrateJsVisitor = {
       toAsync = true;
     } else if (apis.has(name)) {
       if (exp.node.arguments.length) {
-        exp.replaceWith(
-          buildWrapZafClientExpression(names, ...exp.node.arguments)
-        );
-        exp.skip();
-        toAsync = true;
+        let nexp;
+        if (/^(ticket|user|organization)Fields$/.test(name)) {
+          const fieldName = `${name}:${exp.get("arguments.0").node.value}`;
+          nexp = buildWrapZafClientExpression(fieldName);
+        } else {
+          nexp = buildWrapZafClientExpression(names, ...exp.node.arguments);
+        }
+        if (nexp) {
+          exp.replaceWith(nexp);
+          exp.skip();
+          toAsync = true;
+        }
       } else if (exp.parentPath.isVariableDeclarator() && !names.length) {
         opCache[name] = exp.parent.id;
         exp.replaceWith(buildWrapZafClientExpression(name));
@@ -257,16 +264,19 @@ export default async (options: Map<string, any>) => {
         location: []
       });
 
-      const cache = new Map<
-        string,
-        { async?: boolean; scope?: {}; boolean; [key: string]: any }
-      >();
+      const cache = new Map<string, { [key: string]: any }>();
+      const hasTicket = hasLocation(manifestJson, "ticket");
+      const hasUser = hasLocation(manifestJson, "user");
+      const hasOrg = hasLocation(manifestJson, "organization");
       const apis = new Map<string, boolean>([
-        ["ticket", hasLocation(manifestJson, "ticket")],
-        ["user", hasLocation(manifestJson, "user")],
-        ["organization", hasLocation(manifestJson, "organization")],
+        ["ticket", hasTicket],
+        ["user", hasUser],
+        ["organization", hasOrg],
         ["currentUser", true],
-        ["currentAccount", true]
+        ["currentAccount", true],
+        ["ticketFields", hasTicket],
+        ["userFields", hasUser],
+        ["organizationFields", hasOrg]
       ]);
       // This is where all the changes will be made to the v1 AST
       const container = returnStatementPath.get("argument.properties");
