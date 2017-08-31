@@ -1,11 +1,11 @@
 import { expect } from "chai";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
+import { readFileSync } from "fs";
+import { render } from "ejs";
 import { format } from "prettier";
 import { minify } from "uglify-es";
-import { stub } from "sinon";
 import subject from "../../steps/migrate_app_js";
-// import { Map } from "immutable";
 
 describe("migrate app js", () => {
   let editor, originalSrc, options: Map<string, any>;
@@ -73,176 +73,182 @@ describe("migrate app js", () => {
       });
     });
 
-    describe("--experimental", () => {
+    describe("given the --experimental flag is true", () => {
       beforeEach(() => {
-        originalSrc = editor.read(`${src}/app.js`);
         options.set("experimental", true);
       });
 
-      afterEach(() => editor.write(`${src}/app.js`, originalSrc));
-
-      function readMigratedSrc() {
-        const { code } = minify(
-          editor.read(`${dest}/src/javascripts/legacy_app.js`),
-          { mangle: false }
-        );
+      const readMigratedSrc = (): string => {
+        const js = editor.read(`${dest}/src/javascripts/legacy_app.js`);
+        const { code } = minify(js, {
+          mangle: false,
+          compress: false,
+          ecma: 6
+        });
         return code;
-      }
+        // return format(js).replace(/\s+/g, "");
+      };
 
-      function wrapSrc(src: string): string {
-        src = `(function() {
-          return {
-            ${src}
-          };
-        })();`;
-        const { code } = minify(src, { mangle: false });
+      const wrapExpectedSrc = (js: string, async: boolean = true): string => {
+        js = wrapSrcWithExpression(js);
+        const tpl = readFileSync("src/templates/legacy_app.ejs", {
+          encoding: "utf-8"
+        });
+        js = render(tpl, { code: js, helpers: { async } });
+        const { code } = minify(js, {
+          mangle: false,
+          compress: false,
+          ecma: 6
+        });
         return code;
-      }
+        // return format(js).replace(/\s+/g, "");
+      };
 
-      describe("when the v1 app is in the ticket/user/org location", () => {
-        let readJSONStub: sinon.SinonStub;
-        beforeEach(() => {
-          readJSONStub = stub(editor, "readJSON")
-            .withArgs(`${src}/manifest.json`)
-            .returns({
-              location: [
-                "ticket_sidebar",
-                "user_sidebar",
-                "organization_sidebar"
-              ]
+      const writeFixtureSrc = (js: string): void => {
+        editor.write(`${src}/app.js`, wrapSrcWithExpression(js));
+      };
+
+      const wrapSrcWithExpression = (js: string): string => {
+        return `(function() { return { ${js} }; })();`;
+      };
+
+      ["ticket", "user", "organization"].forEach(location => {
+        describe(`when the v1 app is in the ${location} location`, () => {
+          beforeEach(() => {
+            editor.writeJSON(`${src}/manifest.json`, {
+              location: `${location}_sidebar`
             });
-        });
-
-        afterEach(() => readJSONStub.reset());
-
-        describe("with ticket APIs", () => {
-          it("should migrate v1 ticket APIs to be async/await", async () => {
-            editor.write(
-              `${src}/app.js`,
-              wrapSrc(`foo: function() {
-                console.log(this.ticket().requester().email());
-              }`)
-            );
-            await subject(options);
-            expect(readMigratedSrc()).to.have.string(
-              wrapSrc(`foo: async function() {
-              var ticket = await wrapZafClient(this.zafClient, "ticket");
-              console.log(ticket.requester.email);
-            }`)
-            );
           });
 
-          it("should make other methods async, if they call an async method", async () => {
-            editor.write(
-              `${src}/app.js`,
-              wrapSrc(`foo: function() {
-                var ticket = this.ticket();
-                console.log(ticket.requester().email());
-              },
-              bar: function() {
-                this.foo();
-                return true;
-              }`)
-            );
-            await subject(options);
-            expect(readMigratedSrc()).to.have.string(
-              wrapSrc(`foo: async function() {
-                var ticket = await wrapZafClient(this.zafClient, "ticket");
-                console.log(ticket.requester.email);
-              },
-              bar: async function() {
-                await this.foo();
-                return true;
-              }`)
-            );
-          });
+          describe(`with ${location} APIs`, () => {
+            it("should migrate v1 APIs to be async/await", async () => {
+              writeFixtureSrc(`foo: function() {
+                  console.log(this.${location}().requester().email());
+                }`);
 
-          it("should migrate v1 ticket APIs when they are in nested statements", async () => {
-            editor.write(
-              `${src}/app.js`,
-              wrapSrc(`foo: function() {
-                var thing = {
-                  quux: this.ticket()
-                };
+              await subject(options);
+              expect(readMigratedSrc()).to.have.string(
+                wrapExpectedSrc(`foo: async function() {
+                const _${location} = await wrapZafClient(this.zafClient, "${location}");
+                console.log(_${location}.requester.email);
               }`)
-            );
-            await subject(options);
-            expect(readMigratedSrc()).to.have.string(
-              wrapSrc(`foo: async function() {
-                const _ticket = await wrapZafClient(this.zafClient, "ticket");
-                var thing = {
-                  quux: _ticket
-                };
-              }`)
-            );
-          });
+              );
+            });
 
-          it("should create unique var names to avoid conflict with existing bindings", async () => {
-            editor.write(
-              `${src}/app.js`,
-              wrapSrc(`foo: function() {
-                var ticket = true;
-                var requester = this.ticket().requester();
-              }`)
-            );
-            await subject(options);
-            expect(readMigratedSrc()).to.have.string(
-              wrapSrc(`foo: async function() {
-                const _ticket = await wrapZafClient(this.zafClient, "ticket");
-                var ticket = true;
-                var requester = _ticket.requester;
-              }`)
-            );
-          });
+            it("should make other methods async, if they call an async method", async () => {
+              writeFixtureSrc(`foo: function() {
+                  var ${location} = this.${location}();
+                  console.log(${location}.requester().email());
+                },
+                bar: function() {
+                  this.foo();
+                  return true;
+                }`);
 
-          it("should reuse existing bindings, where possible", async () => {
-            editor.write(
-              `${src}/app.js`,
-              wrapSrc(`foo: function() {
-                var ticket = this.ticket();
-                console.log(ticket.requester().email());
-              }`)
-            );
-            await subject(options);
-            expect(readMigratedSrc()).to.have.string(
-              wrapSrc(`foo: async function() {
-              var ticket = await wrapZafClient(this.zafClient, "ticket");
-              console.log(ticket.requester.email);
-            }`)
-            );
-          });
+              await subject(options);
+              expect(readMigratedSrc()).to.have.string(
+                wrapExpectedSrc(`foo: async function() {
+                  var ${location} = await wrapZafClient(this.zafClient, "${location}");
+                  console.log(${location}.requester.email);
+                },
+                bar: async function() {
+                  await this.foo();
+                  return true;
+                }`)
+              );
+            });
 
-          it("should only care about the base API", async () => {
-            editor.write(
-              `${src}/app.js`,
-              wrapSrc(`foo: function() {
-                this.some.thing.ticket.foo();
-              }`)
-            );
-            await subject(options);
-            expect(readMigratedSrc()).to.have.string(
-              wrapSrc(`foo: function() {
-              this.some.thing.ticket.foo();
-            }`)
-            );
-          });
-        });
+            it("should migrate v1 APIs when they are in nested statements", async () => {
+              writeFixtureSrc(`foo: function() {
+                  return {
+                    quux: this.${location}()
+                  };
+                }`);
+              await subject(options);
+              expect(readMigratedSrc()).to.have.string(
+                wrapExpectedSrc(`foo: async function() {
+                  const _${location} = await wrapZafClient(this.zafClient, "${location}");
+                  return {
+                    quux: _${location}
+                  };
+                }`)
+              );
+            });
 
-        describe("with user APIs", () => {
-          it("should migrate v1 APIs to be async/await", async () => {
-            editor.write(
-              `${src}/app.js`,
-              wrapSrc(`foo: function() {
-                console.log(this.user().role());
+            it("should create unique var names to avoid conflict with existing bindings", async () => {
+              writeFixtureSrc(`foo: function() {
+                  var ${location} = true;
+                  var requester = this.${location}().requester();
+                }`);
+
+              await subject(options);
+              expect(readMigratedSrc()).to.have.string(
+                wrapExpectedSrc(`foo: async function() {
+                  const _${location} = await wrapZafClient(this.zafClient, "${location}");
+                  var ${location} = true;
+                  var requester = _${location}.requester;
+                }`)
+              );
+            });
+
+            it("should reuse existing bindings, where possible", async () => {
+              writeFixtureSrc(`foo: function() {
+                  var ${location} = this.${location}();
+                  console.log(${location}.requester().email());
+                }`);
+              await subject(options);
+              expect(readMigratedSrc()).to.have.string(
+                wrapExpectedSrc(`foo: async function() {
+                var ${location} = await wrapZafClient(this.zafClient, "${location}");
+                console.log(${location}.requester.email);
               }`)
-            );
-            await subject(options);
-            expect(readMigratedSrc()).to.have.string(
-              wrapSrc(`foo: async function() {
-              const user = await wrapZafClient(this.zafClient, "user");
-              console.log(user.role);
-            }`)
-            );
+              );
+            });
+
+            it("should only care about the base API", async () => {
+              writeFixtureSrc(`foo: function() {
+                  this.some.thing.${location}.foo();
+                }`);
+              await subject(options);
+              expect(readMigratedSrc()).to.have.string(
+                wrapExpectedSrc(
+                  `foo: function() {
+                this.some.thing.${location}.foo();
+              }`,
+                  false
+                )
+              );
+            });
+
+            const api = `${location}Fields`;
+            describe(api, () => {
+              describe("with no arguments", () => {
+                it("should migrate v1 APIs to be async/await", async () => {
+                  writeFixtureSrc(`foo: function() {
+                     const fields = this.${api}(); 
+                    }`);
+                  await subject(options);
+                  expect(readMigratedSrc()).to.have.string(
+                    wrapExpectedSrc(`foo: async function() {
+                      const fields = await wrapZafClient(this.zafClient, "${api}"); 
+                     }`)
+                  );
+                });
+              });
+              describe("with arguments", () => {
+                it("should use the v2 colon-delimited DSL", async () => {
+                  writeFixtureSrc(`foo: function() {
+                     const fields = this.${api}("brand");
+                    }`);
+                  await subject(options);
+                  expect(readMigratedSrc()).to.have.string(
+                    wrapExpectedSrc(`foo: async function() {
+                      const fields = await wrapZafClient(this.zafClient, "${api}:brand"); 
+                     }`)
+                  );
+                });
+              });
+            });
           });
         });
       });
