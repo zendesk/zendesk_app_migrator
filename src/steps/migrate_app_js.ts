@@ -183,11 +183,15 @@ const migrateJsVisitor = {
         opCache[name] = id;
         toAsync = true;
       }
-      if (id && names.length) {
-        exp.replaceWithSourceString(`${id.name}.${names.join(".")}`);
-        if (exp.parentPath.isVariableDeclarator()) {
-          const binding = opCache.scope.bindings[exp.parent.id.name];
-          replaceReferencesForBinding(binding);
+      if (id) {
+        if (names.length) {
+          exp.replaceWithSourceString(`${id.name}.${names.join(".")}`);
+          if (exp.parentPath.isVariableDeclarator()) {
+            const binding = opCache.scope.bindings[exp.parent.id.name];
+            replaceReferencesForBinding(binding);
+          }
+        } else {
+          exp.replaceWith(id);
         }
         toAsync = true;
       }
