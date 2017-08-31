@@ -152,7 +152,11 @@ const migrateJsVisitor = {
     const opCache = cache.get(opName);
     if ((methodName && name !== methodName) || opName === methodName) return;
     const { exp, names } = getExpressionToReplace(path);
-    if ((obj = cache.get(name)) && obj.async) {
+    if (
+      (obj = cache.get(name)) &&
+      obj.async &&
+      !exp.parentPath.isAwaitExpression()
+    ) {
       exp.replaceWith(types.awaitExpression(exp.node));
       exp.skip();
       toAsync = true;
