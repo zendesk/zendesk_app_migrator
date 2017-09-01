@@ -19,7 +19,6 @@ interface IManifest {
 function hasLocation(manifest: IManifest, name: string): boolean {
   let { location, noTemplate } = manifest;
   if (!location && !noTemplate) return false;
-  location = Array.isArray(location) ? location : [location];
   let allLocations: string[] = [].concat(location, noTemplate);
   return chain(allLocations)
     .compact()
