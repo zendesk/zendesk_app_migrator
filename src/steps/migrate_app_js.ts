@@ -55,18 +55,18 @@ function replaceReferencesForBinding(binding) {
 
 function getExpressionToReplace(path) {
   const names = [],
-    exp = path.findParent(path => {
+    exp = path.findParent(p => {
       if (
-        (!path.parentPath.isMemberExpression() &&
-          !path.parentPath.isCallExpression()) ||
-        ((path.isCallExpression() && path.inList) ||
-          (path.parentPath.isMemberExpression() &&
-            /^(then|bind)$/.test(path.parent.property.name)))
+        (!p.parentPath.isMemberExpression() &&
+          !p.parentPath.isCallExpression()) ||
+        ((p.isCallExpression() && p.inList) ||
+          (p.parentPath.isMemberExpression() &&
+            /^(then|bind)$/.test(p.parent.property.name)))
       ) {
         return true;
       }
-      if (path.isMemberExpression()) {
-        names.push(path.node.property.name);
+      if (p.isMemberExpression()) {
+        names.push(p.node.property.name);
       }
       return false;
     });
