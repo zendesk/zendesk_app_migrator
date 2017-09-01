@@ -43,7 +43,7 @@ export function findLowestDepthPath(ast, type: string) {
         lowestDepth = depth;
       } else if (lowestDepth > depth) {
         lowestDepthPath = path;
-        lowestDepthPath.depth = depth;
+        lowestDepth = depth;
       }
     }
   });
