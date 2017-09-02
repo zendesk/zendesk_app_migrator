@@ -5,8 +5,8 @@ import * as fsEditor from "mem-fs-editor";
 import * as emoji from "node-emoji";
 import * as ProgressBar from "progress";
 import { List, Map } from "immutable";
-import Insight from "insight";
-const pkg = require("./package.json");
+import * as Insight from "insight";
+const pkg = require("../package.json");
 
 // This monkeypatch is necessary for for–await-of to work in Typescript v2.4+
 (Symbol as any).asyncIterator =
@@ -15,6 +15,7 @@ const pkg = require("./package.json");
 export interface CliOptions {
   path: string;
   replaceV1?: boolean;
+  skipInsight?: boolean;
 }
 
 class Migrator {
@@ -83,8 +84,10 @@ class Migrator {
     // Make a new instance of the Migrator
     const migratr: Migrator = new Migrator();
     // Ask for permission to use insight reporting
-    if (migratr.insight.optOut === undefined) {
-      migratr.insight.askPermission();
+    if (migratr.insight.optOut === undefined && !cliOptions.skipInsight) {
+      await new Promise((res, rej) => {
+        migratr.insight.askPermission(null, res);
+      });
     }
     // Create options to be passed through steps
     // Flags passed to the CLI will be merged in
