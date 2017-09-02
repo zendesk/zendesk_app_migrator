@@ -5,6 +5,8 @@ import * as fsEditor from "mem-fs-editor";
 import * as emoji from "node-emoji";
 import * as ProgressBar from "progress";
 import { List, Map } from "immutable";
+import Insight from "insight";
+const pkg = require("./package.json");
 
 // This monkeypatch is necessary for for–await-of to work in Typescript v2.4+
 (Symbol as any).asyncIterator =
@@ -16,6 +18,7 @@ export interface CliOptions {
 }
 
 class Migrator {
+  protected insight: Insight;
   protected progressBar: ProgressBar;
 
   static steps: List<string> = List([
@@ -51,6 +54,10 @@ class Migrator {
         width: 20
       }
     );
+    this.insight = new Insight({
+      trackingCode: "UA-XXXXXXXX-X",
+      pkg
+    });
   }
 
   protected async *perform(options: Map<string, any>) {
@@ -75,6 +82,10 @@ class Migrator {
     const editor = fsEditor.create(store);
     // Make a new instance of the Migrator
     const migratr: Migrator = new Migrator();
+    // Ask for permission to use insight reporting
+    if (migratr.insight.optOut === undefined) {
+      migratr.insight.askPermission();
+    }
     // Create options to be passed through steps
     // Flags passed to the CLI will be merged in
     const options: Map<string, any> = Map({
@@ -90,8 +101,10 @@ class Migrator {
       console.log(
         chalk.bold.green(emoji.emojify("Finished all steps! :rocket:"))
       );
+      migratr.insight.track("migrator", "done");
     } catch (err) {
       migratr.progressBar.interrupt(chalk.bold.red(err.message));
+      migratr.insight.track("migrator", "error", options.get("step"));
     }
   }
 }
