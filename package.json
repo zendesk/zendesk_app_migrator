@@ -30,6 +30,7 @@
     "globby": "^6.1.0",
     "immutable": "^3.8.1",
     "inquirer": "^3.2.2",
+    "insight": "^0.8.4",
     "lodash": "^4.17.4",
     "mem-fs": "^1.1.3",
     "mem-fs-editor": "^3.0.2",
