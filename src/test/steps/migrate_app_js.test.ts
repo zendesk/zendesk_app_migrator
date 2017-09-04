@@ -86,7 +86,6 @@ describe("migrate app js", () => {
           ecma: 6
         });
         return code;
-        // return format(js).replace(/\s+/g, "");
       };
 
       const wrapExpectedSrc = (js: string, async: boolean = true): string => {
@@ -101,7 +100,6 @@ describe("migrate app js", () => {
           ecma: 6
         });
         return code;
-        // return format(js).replace(/\s+/g, "");
       };
 
       const writeFixtureSrc = (js: string): void => {
