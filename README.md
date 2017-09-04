@@ -37,7 +37,7 @@ When a v1 app is migrated, we leverage the features already built into the App S
 
 #### Auto option
 __Please note that auto transforms may not work as expected.  Use with caution, and always test extensively after migration.__
-For a better understanding of how auto transforms are expected to behave, look at tests for the [migrate\_app\_js step tests](https://github.com/zendesk/zendesk_app_migrator/blob/master/src/test/steps/migrate_app_js.test.ts)
+For a better understanding of how auto transforms are expected to behave, look at tests for the [migrate\_app\_js step tests](https://github.com/zendesk/zendesk_app_migrator/blob/master/src/test/steps/migrate_app_js.test.ts).
 Transforms currently available:
 - Rewrites synchronous v1 API calls to be asynchronous.  This works by adding a shim for the [ZAF SDK APIs](https://developer.zendesk.com/apps/docs/apps-v2/api_reference).  The shim will be combined with the use of [async/awaits](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function).
 - Injecting JavaScript and CSS assets to support the use of the `zdSelectMenu` API available in v1.
