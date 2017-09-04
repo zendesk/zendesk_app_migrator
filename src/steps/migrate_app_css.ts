@@ -5,9 +5,9 @@ export default async (options: Map<string, any>) => {
   const src = options.get("src");
   const dest = options.get("dest");
   const editor = options.get("editor");
-  const importZendeskMenus: boolean = options.get("importZendeskMenus", false);
+  const importUIWidgets: boolean = options.get("importUIWidgets", false);
 
-  if (importZendeskMenus) {
+  if (importUIWidgets) {
     editor.copy(
       "./src/templates/zendesk_menus.css",
       `${dest}/src/stylesheets/zendesk_menus.css`
@@ -22,7 +22,7 @@ export default async (options: Map<string, any>) => {
   });
   css = css.trim();
   css = css.length ? `* { ${css}  }` : defaultCss;
-  if (importZendeskMenus) {
+  if (importUIWidgets) {
     css = `@import "./zendesk_menus";${css}`;
   }
   editor.write(destCSS, format(css, { parser: "postcss" }));

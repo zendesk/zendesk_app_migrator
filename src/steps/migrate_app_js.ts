@@ -16,6 +16,10 @@ interface IManifest {
   noTemplate?: string | string[];
 }
 
+function isUIWidgetExpression(name) {
+  return /^zd((Combo)?Select)?Menu$/.test(name);
+}
+
 function hasLocation(manifest: IManifest, name: string): boolean {
   let { location, noTemplate } = manifest;
   let allLocations: string[] = [].concat(location, noTemplate);
@@ -137,8 +141,8 @@ const migrateJsVisitor = {
       id,
       obj,
       toAsync = false;
-    if (/^zd((Combo)?Select)?Menu$/.test(name)) {
-      cache.set("importZendeskMenus", true);
+    if (isUIWidgetExpression(name)) {
+      cache.set("importUIWidgets", true);
       return;
     }
     if (!path.get("object").isThisExpression()) return;
@@ -291,7 +295,7 @@ export default async (options: Map<string, any>) => {
       // until all references to async methods have await statements
       const asyncMethods = [];
       for (const [methodName, meta] of cache) {
-        if (methodName !== "importZendeskMenus" && meta.async)
+        if (methodName !== "importUIWidgets" && meta.async)
           asyncMethods.push(methodName);
       }
       let methodName;
@@ -305,14 +309,14 @@ export default async (options: Map<string, any>) => {
         });
       }
 
-      if (cache.has("importZendeskMenus")) {
+      if (cache.has("importUIWidgets")) {
         editor.copy(
           "./src/templates/zendesk_menus.js",
           `${dest}/lib/javascripts/zendesk_menus.js`
         );
         editor.write(`${dest}/.eslintignore`, "**/zendesk_menus.js");
         copyOptions.helpers.menus = true;
-        options = options.set("importZendeskMenus", true);
+        options = options.set("importUIWidgets", true);
       }
 
       // If any of the methods have been changed to async (because they _now_ use the SDK)
