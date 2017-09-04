@@ -65,6 +65,9 @@ Tests are run using the [`mocha`](https://mochajs.org/) test runner. [`chai`](ht
 - `yarn build`
 - `yarn build-watch`
 
+### Contributing
+We welcome contributions. First, please read the [Pull Request Guidelines](https://github.com/zendesk/zendesk_app_migrator/wiki/Pull-Request-Guidelines) and [Style Guide](https://github.com/zendesk/zendesk_app_migrator/wiki/Style-Guide) pages on our wiki.
+
 ### Deployment
 
 The App Migrator will be deployed as a node package, and/or as a dependency of other projects.
