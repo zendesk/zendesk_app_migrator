@@ -11,9 +11,10 @@ const cli = meow(
       $ app_migrator <input>
 
   Options
-    -p, --path         Path to the app to be migrated
-    -r, --replace-v1   Whether or not to replace the v1 app files with the v2 files
-    -s, --skip-insight Whether to avoid checking for insight config, or sending any data
+    -p, --path        Path to the app to be migrated
+    -r, --replace-v1  Whether or not to replace the v1 app files with the v2 files
+    --insight         Switch on anonymous tracking to help improve the tool
+    --no-insight      Switch off anonymous tracking
 
   Examples
     $ app_migrator migrate --path /path/to/my/app/directory/
@@ -21,8 +22,7 @@ const cli = meow(
   {
     alias: {
       p: "path",
-      r: "replace-v1",
-      s: "skip-insight"
+      r: "replace-v1"
     }
   }
 );
