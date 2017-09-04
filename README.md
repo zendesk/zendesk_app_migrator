@@ -33,11 +33,11 @@ When a v1 app is migrated, we leverage the features already built into the App S
 |---|---|---|---|
 |-p --path||Yes|The location of the v1 app|
 |-r --replace-v1|false|No|Whether to backup v1 files, and replace with v2 during migration. Backed up files will be moved to a v1 folder, alongside the new v2 files.|
-|-e --experimental|false|No|Enables more end-to-end transformations of JavaScript, and CSS code.  See the expanded [Experimental option](#experimental-option) section below for more details.|
+|-a --auto|false|No|Enables more end-to-end transformations of JavaScript, and CSS code.  See the expanded [Auto option](#auto-option) section below for more details.|
 
-#### Experimental option
-__Please note that experimental transforms may not work as expected.  Use with caution, and always test extensively after migration.__
-For a better understanding of how experimental transforms are expected to behave, look at tests for the [migrate\_app\_js step tests](https://github.com/zendesk/zendesk_app_migrator/blob/master/src/test/steps/migrate_app_js.test.ts)
+#### Auto option
+__Please note that auto transforms may not work as expected.  Use with caution, and always test extensively after migration.__
+For a better understanding of how auto transforms are expected to behave, look at tests for the [migrate\_app\_js step tests](https://github.com/zendesk/zendesk_app_migrator/blob/master/src/test/steps/migrate_app_js.test.ts)
 Transforms currently available:
 - Rewrites synchronous v1 API calls to be asynchronous.  This works by adding a shim for the [ZAF SDK APIs](https://developer.zendesk.com/apps/docs/apps-v2/api_reference).  The shim will be combined with the use of [async/awaits](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function).
 - Injecting JavaScript and CSS assets to support the use of the `zdSelectMenu` API available in v1.
