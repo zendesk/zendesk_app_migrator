@@ -215,7 +215,7 @@ export default async (options: Map<string, any>) => {
   const src = options.get("src");
   const dest = options.get("dest");
   const editor = options.get("editor");
-  const experimental: boolean = options.get("experimental");
+  const auto: boolean = options.get("auto");
   const appJS = editor.read(`${src}/app.js`);
 
   let code: string = `
@@ -258,7 +258,7 @@ export default async (options: Map<string, any>) => {
       }
     });
 
-    if (experimental) {
+    if (auto) {
       const manifestJson = editor.readJSON(`${src}/manifest.json`, {
         location: []
       });

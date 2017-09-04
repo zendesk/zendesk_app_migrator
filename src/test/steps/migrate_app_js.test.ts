@@ -73,9 +73,9 @@ describe("migrate app js", () => {
       });
     });
 
-    describe("given the --experimental flag is true", () => {
+    describe("given the --auto flag is true", () => {
       beforeEach(() => {
-        options.set("experimental", true);
+        options.set("auto", true);
       });
 
       const readMigratedSrc = (): string => {

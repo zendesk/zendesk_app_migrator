@@ -14,7 +14,7 @@ import { prompt } from "inquirer";
 export interface CliOptions {
   path: string;
   replaceV1?: boolean;
-  experimental?: boolean;
+  auto?: boolean;
 }
 
 class Migrator {
@@ -83,18 +83,18 @@ class Migrator {
       editor
     }).merge(cliOptions);
 
-    if (cliOptions.experimental) {
-      const { experiment } = await prompt([
+    if (cliOptions.auto) {
+      const { auto } = await prompt([
         {
           type: "confirm",
-          name: "experiment",
+          name: "auto",
           message: `You've used the ${chalk.bold(
-            "experimental"
-          )} flag.  Experimental features may be unstable, do you wish to proceed anyway?`,
+            "auto"
+          )} flag.  Auto migration is experimental and may be unstable, do you wish to proceed anyway?`,
           default: true
         }
       ]);
-      if (!experiment) {
+      if (!auto) {
         console.log(
           chalk.bold.red(`Migration cancelled ${emojify(":crying_cat_face:")}`)
         );
