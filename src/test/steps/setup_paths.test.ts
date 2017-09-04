@@ -29,7 +29,9 @@ describe("setup paths", () => {
 
     beforeEach(() => {
       logSpy = spy(console, "log");
-      promptStub = stub(inquirer, "prompt").returns({ replace: "Y" });
+      promptStub = stub(inquirer, "prompt").returns(
+        Promise.resolve({ replace: "Y" })
+      );
     });
 
     afterEach(() => {
