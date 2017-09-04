@@ -15,17 +15,13 @@ export default async (options: Map<string, any>) => {
   }
 
   // Copy and reformat `./app.css`
-  const cssTpl = "./src/templates/css.ejs";
   const destCSS = `${dest}/src/stylesheets/app.scss`;
   const defaultCss = "/* Add CSS here... */";
   let css = editor.read(`${src}/app.css`, {
     defaults: defaultCss
   });
   css = css.trim();
-  css = !css.length ? defaultCss : css;
-  if (css !== defaultCss) {
-    css = `* { ${css}  }`;
-  }
+  css = css.length ? `* { ${css}  }` : defaultCss;
   if (importZendeskMenus) {
     css = `@import "./zendesk_menus";${css}`;
   }
