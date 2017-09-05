@@ -20,7 +20,7 @@
   "author": "Zendesk <support@zendesk.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "app_scaffold": "github:zendesk/app_scaffold#v0.1.x",
+    "app_scaffold": "zendesk/app_scaffold#v0.2.0",
     "chalk": "^2.0.1",
     "es6-promise": "^4.1.1",
     "global": "^4.3.2",
