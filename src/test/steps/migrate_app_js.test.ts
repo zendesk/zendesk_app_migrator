@@ -60,7 +60,7 @@ describe("migrate app js", () => {
 
     describe("when there are common js modules", () => {
       beforeEach(() => {
-        options = options.set("hasCommonJS", true);
+        options = options.set("hasCommonJs", true);
       });
 
       it("should update require statements in app.js to be relative", async () => {

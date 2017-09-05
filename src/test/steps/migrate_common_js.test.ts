@@ -41,7 +41,7 @@ describe("migrate common js", () => {
   describe("with a v1 `lib` folder", () => {
     it("copies the lib folder to the destination", async () => {
       options = await subject(options);
-      expect(options.has("hasCommonJS")).to.be.true;
+      expect(options.has("hasCommonJs")).to.be.true;
     });
 
     it("rewrites require statements within to be relative", async () => {
