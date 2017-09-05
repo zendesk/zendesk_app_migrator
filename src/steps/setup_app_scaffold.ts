@@ -2,7 +2,6 @@ import { Map } from "immutable";
 import { resolve } from "path";
 
 export default async (options: Map<string, any>) => {
-  const src = options.get("src");
   const dest = options.get("dest");
   const editor = options.get("editor");
   // Copy files from app scaffold as basis for migrated app source

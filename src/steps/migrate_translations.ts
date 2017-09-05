@@ -3,5 +3,10 @@ export default async options => {
   const dest = options.get("dest");
   const editor = options.get("editor");
   // Copy all translation files across
-  editor.copy(`${src}/translations/*`, `${dest}/src/translations/`);
+  try {
+    editor.copy(`${src}/translations/*`, `${dest}/src/translations/`);
+  }
+  catch (e) {
+    // No translation file, do nothing
+  }
 };
