@@ -5,15 +5,7 @@ export default async (options: Map<string, any>) => {
   const src = options.get("src");
   const dest = options.get("dest");
   const editor = options.get("editor");
-  const importUIWidgets: boolean = options.get("importUIWidgets", false);
-
-  if (importUIWidgets) {
-    editor.copy(
-      "./src/templates/zendesk_menus.css",
-      `${dest}/src/stylesheets/zendesk_menus.css`
-    );
-  }
-
+  const uiWidgets: boolean = options.get("uiWidgets", false);
   // Copy and reformat `./app.css`
   const destCSS = `${dest}/src/stylesheets/app.scss`;
   const defaultCss = "/* Add CSS here... */";
@@ -22,8 +14,12 @@ export default async (options: Map<string, any>) => {
   });
   css = css.trim();
   css = css.length ? `* { ${css}  }` : defaultCss;
-  if (importUIWidgets) {
+  if (uiWidgets) {
     css = `@import "./zendesk_menus";${css}`;
+    editor.copy(
+      "./src/templates/zendesk_menus.css",
+      `${dest}/src/stylesheets/zendesk_menus.css`
+    );
   }
   editor.write(destCSS, format(css, { parser: "postcss" }));
 };
