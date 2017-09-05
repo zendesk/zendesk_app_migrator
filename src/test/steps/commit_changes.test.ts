@@ -9,30 +9,24 @@ describe("commit changes", () => {
   let editor, dest;
   let options: Map<string, any>;
   const cwd = process.cwd();
-  const src = `${cwd}/tmp/test/basic_ticket_sample_app`;
+  const src = `${cwd}/tmp/test/v1_app`;
 
   beforeEach(() => {
     mkdir("-p", src);
-    cp(
-      "-rf",
-      `${cwd}/src/test/fixtures/basic_ticket_sample_app/*`,
-      `${cwd}/tmp/test/basic_ticket_sample_app`
-    );
     editor = fsEditor.create(memFs.create());
-    editor.write(`${src}/v2/src/javascripts/legacy_app.js`, "var a = true");
+    editor.write(`${src}/app.js`, "");
+    editor.write(`${src}/v2/src/javascripts/legacy_app.js`, "");
     options = Map({ src, editor });
   });
 
   afterEach(() => {
     rm("-rf", src);
-    editor.delete(`${src}/v2/src/javascripts/legacy_app.js`);
   });
 
   describe("when --replace-v1 is false, or not set", () => {
-    before(() => (dest = `${src}/v2`));
     it("should save files to a v2 folder", async () => {
       await subject(options);
-      expect(test("-e", `${dest}/src/javascripts/legacy_app.js`)).to.be.true;
+      expect(test("-e", `${src}/v2/src/javascripts/legacy_app.js`)).to.be.true;
     });
   });
 
@@ -46,11 +40,12 @@ describe("commit changes", () => {
       options = await subject(options);
       dest = options.get("dest");
       expect(dest).to.equal(src);
+      expect(test("-e", `${dest}/v2/src/javascripts/legacy_app.js`)).to.be.false;
       expect(test("-e", `${dest}/src/javascripts/legacy_app.js`)).to.be.true;
     });
 
     it("should backup the v1 app source files to a v1 folder", async () => {
-      expect(test("-e", `${dest}/app.js`)).to.be.true;
+      expect(editor.exists(`${src}/app.js`)).to.be.true;
       options = await subject(options);
       dest = options.get("dest");
       expect(test("-e", `${dest}/app.js`)).to.be.false;

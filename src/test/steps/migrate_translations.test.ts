@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
+import { mkdir, rm } from "shelljs";
 import subject from "../../steps/migrate_translations";
 import { Map } from "immutable";
 
@@ -8,16 +9,29 @@ describe("migrate translations", () => {
   let editor;
   let options: Map<string, any>;
   const cwd = process.cwd();
-  const src = `${cwd}/src/test/fixtures/basic_ticket_sample_app`;
-  const dest = `${cwd}/tmp/test/basic_ticket_sample_app`;
+  const src = `${cwd}/tmp/test/v1_app`;
+  const dest = `${cwd}/tmp/test/v2_app`;
 
   beforeEach(() => {
+    mkdir("-p", src);
+    mkdir("-p", dest);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
   });
 
-  it("should copy translations to the destination", async () => {
+  afterEach(() => {
+    rm("-rf", src);
+    rm("-rf", dest);
+  });
+
+  it("should copy all translation files to the destination", async () => {
+    const translations = ['en.json', 'fr.json', 'es.json'];
+    translations.forEach((file) => {
+      editor.write(`${src}/translations/${file}`, "");
+    });
     await subject(options);
-    expect(editor.exists(`${dest}/src/translations/en.json`)).to.be.true;
+    translations.forEach((file) => {
+      expect(editor.exists(`${dest}/src/translations/${file}`)).to.be.true;
+    });
   });
 });

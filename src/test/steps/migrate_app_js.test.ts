@@ -228,12 +228,12 @@ describe("migrate app js", () => {
               describe("with no arguments", () => {
                 it("should migrate v1 APIs to be async/await", async () => {
                   writeFixtureSrc(`foo: function() {
-                     const fields = this.${api}(); 
+                     const fields = this.${api}();
                     }`);
                   await subject(options);
                   expect(readMigratedSrc()).to.have.string(
                     wrapExpectedSrc(`foo: async function() {
-                      const fields = await wrapZafClient(this.zafClient, "${api}"); 
+                      const fields = await wrapZafClient(this.zafClient, "${api}");
                      }`)
                   );
                 });
@@ -246,7 +246,7 @@ describe("migrate app js", () => {
                   await subject(options);
                   expect(readMigratedSrc()).to.have.string(
                     wrapExpectedSrc(`foo: async function() {
-                      const fields = await wrapZafClient(this.zafClient, "${api}:brand"); 
+                      const fields = await wrapZafClient(this.zafClient, "${api}:brand");
                      }`)
                   );
                 });
