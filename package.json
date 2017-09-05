@@ -17,10 +17,7 @@
     "postversion": "git push --follow-tags && yarn publish",
     "test-watch": "nodemon --watch src --ext ts --exec yarn test"
   },
-  "author": {
-    "name": "Zendesk",
-    "email": "support@zendesk.com"
-  },
+  "author": "Zendesk <support@zendesk.com>",
   "license": "Apache-2.0",
   "dependencies": {
     "app_scaffold": "github:zendesk/app_scaffold#v0.1.x",
@@ -59,5 +56,6 @@
     "sinon": "^3.2.1",
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2"
-  }
+  },
+  "repository": "git@github.com:zendesk/zendesk_app_migrator.git"
 }
