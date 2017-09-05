@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { statSync } from "fs";
 import { resolve } from "path";
 import * as chalk from "chalk";
