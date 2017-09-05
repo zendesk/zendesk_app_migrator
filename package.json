@@ -9,7 +9,7 @@
     "app_migrator": "./lib/index.js"
   },
   "scripts": {
-    "build": "./node_modules/.bin/tsc -p .",
+    "build": "tsc -p .",
     "build-watch": "nodemon --watch src --ext ts --exec yarn build",
     "pretest": "yarn run build",
     "test": "mocha ./lib/test/**/*.test.js",
