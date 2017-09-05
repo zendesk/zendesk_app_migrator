@@ -6,7 +6,6 @@ export default async (options: Map<string, any>) => {
   const dest = options.get("dest");
   const editor = options.get("editor");
   // Copy files from app scaffold as basis for migrated app source
-  console.log(resolve(__dirname, "..", "..", "node_modules/app_scaffold/**"));
   editor.copy(
     resolve(__dirname, "..", "..", "node_modules/app_scaffold/**"),
     dest,
