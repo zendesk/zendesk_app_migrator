@@ -3,14 +3,16 @@ import { Map } from "immutable";
 import * as prettier from "prettier";
 import * as chalk from "chalk";
 import { requireStatementProcessorFactory } from "../utils";
+import { resolve, join } from "path";
 const { namedTypes, builders, visit } = recast.types;
 
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
   const dest = options.get("dest");
   const editor = options.get("editor");
-  const hasCommonJS = options.get("hasCommonJS");
-  const appJS = editor.read(`${src}/app.js`);
+  const hasCommonJs = options.get("hasCommonJs");
+  const appJsSrc = join(src, "app.js");
+  const appJs = editor.read(appJsSrc);
 
   let code: string = `
     (function() {
@@ -21,7 +23,7 @@ export default async (options: Map<string, any>) => {
   `;
 
   // Parse all of the v1 app.js Javascript into an AST
-  const ast = recast.parse(appJS);
+  const ast = recast.parse(appJs);
 
   // Traverse the AST to find the v1 `return` statement that actually
   // returns the app subclass
@@ -50,17 +52,24 @@ export default async (options: Map<string, any>) => {
     code = recast.print(ast).code;
 
     // Check whether the migrate_common_js step discovered some Common JS files
-    if (hasCommonJS) {
+    if (hasCommonJs) {
       const requireProcessor = requireStatementProcessorFactory(options, false);
-      code = requireProcessor(code, `${src}/app.js`);
+      code = requireProcessor(code, appJsSrc);
     }
   }
 
-  const indexTpl = "./src/templates/legacy_app.ejs";
-  const destJS = `${dest}/src/javascripts/legacy_app.js`;
-  editor.copyTpl(indexTpl, destJS, { code });
+  const indexTpl = resolve(
+    __dirname,
+    "..",
+    "..",
+    "src",
+    "templates",
+    "legacy_app.ejs"
+  );
+  const destJs = join(dest, "src", "javascripts", "legacy_app.js");
+  editor.copyTpl(indexTpl, destJs, { code });
   // FIXME: Unfortunately, `copyTpl` doesn't work as advertised,
   // it _should_ allow a process function that would make it possible
   // to format the contents of the file during the copy operation... :(
-  editor.write(destJS, prettier.format(editor.read(destJS)));
+  editor.write(destJs, prettier.format(editor.read(destJs)));
 };
