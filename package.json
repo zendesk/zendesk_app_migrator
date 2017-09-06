@@ -1,6 +1,6 @@
 {
   "name": "zendesk_app_migrator",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "description": "CLI to migrate v1 zendesk_app_framework apps to v2",
   "main": "./lib/index.js",
   "typings": "./lib/index",
