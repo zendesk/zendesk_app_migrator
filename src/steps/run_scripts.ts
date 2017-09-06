@@ -3,6 +3,7 @@ import { Map } from "immutable";
 import { merge } from "lodash";
 import * as chalk from "chalk";
 import * as emoji from "node-emoji";
+import { join, sep } from "path";
 
 const runShellScript = (cmd, cwd = __dirname, options = {}) => {
   return new Promise((res, rej) => {
@@ -29,9 +30,9 @@ const runShellScript = (cmd, cwd = __dirname, options = {}) => {
 export default async (options: Map<string, any>) => {
   const dest = options.get("dest");
   console.log(chalk.bold.green("Installing dependencies"));
-  await runShellScript("yarn install --force --prefer-offline", dest);
+  await runShellScript("yarn install --force", dest);
   console.log(chalk.bold.green("Building v2 app"));
   await runShellScript("yarn run build", dest);
   console.log(chalk.bold.green("Validating v2 app"));
-  await runShellScript(`zat validate --path ${dest}/dist/`);
+  await runShellScript(`zat validate --path ${join(dest, "dist", sep)}`);
 };

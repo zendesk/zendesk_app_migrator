@@ -3,6 +3,8 @@ import * as types from "babel-types";
 import generate from "babel-generator";
 import syncToAsyncPlugin from "../plugins/sync_to_async";
 import { Map as ImmutableMap } from "immutable";
+import { join, resolve } from "path";
+import { format } from "prettier";
 import { get } from "lodash";
 import {
   getDepthOfPath,
@@ -15,7 +17,9 @@ export default async (options: ImmutableMap<string, any>) => {
   const dest = options.get("dest");
   const editor = options.get("editor");
   const auto: boolean = options.get("auto");
-  const appJS = editor.read(`${src}/app.js`);
+  const tplSrc = resolve(__dirname, "..", "..", "src", "templates");
+  const appJsSrc = join(src, "app.js");
+  const appJs = editor.read(appJsSrc);
 
   let code: string = `
     (function() {
@@ -29,7 +33,7 @@ export default async (options: ImmutableMap<string, any>) => {
   };
 
   // Parse all of the v1 app.js Javascript into an AST
-  const ast = parse(appJS);
+  const ast = parse(appJs);
 
   // Traverse the AST to find the v1 `return` statement that actually
   // returns the app subclass
@@ -58,17 +62,17 @@ export default async (options: ImmutableMap<string, any>) => {
     });
 
     if (auto) {
-      const json = editor.readJSON(`${src}/manifest.json`);
+      const json = editor.readJSON(join(src, "manifest.json"));
       const cache = new Map<string, { [key: string]: any }>();
 
       syncToAsyncPlugin(json, returnStatementPath, cache);
 
       if (cache.has("uiWidgets")) {
         editor.copy(
-          "./src/templates/zendesk_menus.js",
-          `${dest}/lib/javascripts/zendesk_menus.js`
+          join(tplSrc, "zendesk_menus.js"),
+          join(dest, "lib", "javascripts", "zendesk_menus.js")
         );
-        editor.write(`${dest}/.eslintignore`, "**/zendesk_menus.js");
+        editor.write(join(dest, ".eslintignore"), "**/zendesk_menus.js");
         copyOptions.helpers.uiWidgets = true;
         options = options.set("uiWidgets", true);
       }
@@ -85,8 +89,11 @@ export default async (options: ImmutableMap<string, any>) => {
     copyOptions.code = generate(ast).code;
   }
 
-  const indexTpl = "./src/templates/legacy_app.ejs";
-  const destJS = `${dest}/src/javascripts/legacy_app.js`;
-  editor.copyTpl(indexTpl, destJS, copyOptions);
-  return options;
+  const indexTpl = join(tplSrc, "legacy_app.ejs");
+  const destJs = join(dest, "src", "javascripts", "legacy_app.js");
+  editor.copyTpl(indexTpl, destJs, copyOptions);
+  // FIXME: Unfortunately, `copyTpl` doesn't work as advertised,
+  // it _should_ allow a process function that would make it possible
+  // to format the contents of the file during the copy operation... :(
+  editor.write(destJs, format(editor.read(destJs)));
 };
