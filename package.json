@@ -20,7 +20,7 @@
   "author": "Zendesk <support@zendesk.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "app_scaffold": "zendesk/app_scaffold#v0.2.x",
+    "app_scaffold": "zendesk/app_scaffold#v0.2.0",
     "babel-generator": "next",
     "babel-template": "next",
     "babel-traverse": "next",
@@ -44,6 +44,7 @@
     "tslib": "^1.7.1",
     "zendesk_app_migrator": "^0.2.2"
   },
+  "bundledDependencies": ["app_scaffold"],
   "devDependencies": {
     "@types/babel-generator": "^6.25.0",
     "@types/babel-traverse": "^6.25.2",
