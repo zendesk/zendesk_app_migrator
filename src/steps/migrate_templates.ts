@@ -6,10 +6,5 @@ export default async (options: Map<string, any>) => {
   const editor = options.get("editor");
 
   // Copy all template files across
-  try {
-    editor.copy(`${src}/templates/**/*.hdbs`, `${dest}/src/templates/`);
-  }
-  catch (e) {
-    // No template found, do nothing
-  }
+  editor.copy(`${src}/templates/**/*.hdbs`, `${dest}/src/templates/`);
 };

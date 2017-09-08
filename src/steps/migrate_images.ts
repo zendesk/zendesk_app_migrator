@@ -7,10 +7,5 @@ export default async (options: Map<string, any>) => {
 
   // Copy all image files across
   const imageGlob: string = "{jp?(e)g,gif,png,svg,woff?(2)}";
-  try {
-    editor.copy(`${src}/assets/**/*.${imageGlob}`, `${dest}/src/images/`);
-  }
-  catch (e) {
-    // No image found, do nothing
-  }
+  editor.copy(`${src}/assets/**/*.${imageGlob}`, `${dest}/src/images/`);
 };

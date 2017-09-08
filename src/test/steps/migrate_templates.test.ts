@@ -17,6 +17,7 @@ describe("migrate templates", () => {
     mkdir("-p", dest);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
+    editor.write(`${src}/templates/default.hdbs`, "");
   });
 
   afterEach(() => {

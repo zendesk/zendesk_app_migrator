@@ -17,6 +17,7 @@ describe("migrate images", () => {
     mkdir("-p", dest);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
+    editor.write(`${src}/assets/logo.png`, "");
   });
 
   afterEach(() => {
