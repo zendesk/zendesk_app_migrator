@@ -13,16 +13,14 @@ describe("migrate templates", () => {
   const dest = `${cwd}/tmp/test/v2_app`;
 
   beforeEach(() => {
-    mkdir("-p", src);
-    mkdir("-p", dest);
+    mkdir("-p", [src, dest]);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
     editor.write(`${src}/templates/default.hdbs`, "");
   });
 
   afterEach(() => {
-    rm("-rf", src);
-    rm("-rf", dest);
+    rm("-rf", [src, dest]);
   });
 
   it("should copy templates to the destination", async () => {

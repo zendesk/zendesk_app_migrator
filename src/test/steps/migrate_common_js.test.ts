@@ -24,8 +24,10 @@ describe("migrate common js", () => {
   `;
 
   beforeEach(() => {
-    mkdir("-p", `${src}/lib/utils`);
-    mkdir("-p", `${dest}/src/javascripts`);
+    mkdir("-p", [
+      `${src}/lib/utils`,
+      `${dest}/src/javascripts`
+    ]);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
     exec(`echo '${sampleCode}' > ${src}/lib/utils/test_utils.js`);
@@ -33,8 +35,7 @@ describe("migrate common js", () => {
   });
 
   afterEach(() => {
-    rm("-rf", src);
-    rm("-rf", dest);
+    rm("-rf", [src, dest]);
   });
 
   describe("with no v1 `lib` folder", () => {

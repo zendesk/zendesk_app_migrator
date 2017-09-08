@@ -16,16 +16,14 @@ describe("migrate manifest", () => {
   const destManifestPath = `${dest}/dist/manifest.json`;
 
   beforeEach(() => {
-    mkdir("-p", src);
-    mkdir("-p", dest);
+    mkdir("-p", [src, dest]);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
     editor.writeJSON(srcManifestPath, {});
   });
 
   afterEach(() => {
-    rm("-rf", src);
-    rm("-rf", dest);
+    rm("-rf", [src, dest]);
   });
 
   it("should copy the manifest to the destination", async () => {

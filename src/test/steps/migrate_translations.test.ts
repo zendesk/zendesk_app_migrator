@@ -13,15 +13,13 @@ describe("migrate translations", () => {
   const dest = `${cwd}/tmp/test/v2_app`;
 
   beforeEach(() => {
-    mkdir("-p", src);
-    mkdir("-p", dest);
+    mkdir("-p", [src, dest]);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
   });
 
   afterEach(() => {
-    rm("-rf", src);
-    rm("-rf", dest);
+    rm("-rf", [src, dest]);
   });
 
   it("should copy all translation files to the destination", async () => {

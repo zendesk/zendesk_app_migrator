@@ -17,16 +17,17 @@ describe("migrate app css", () => {
   const dest = `${cwd}/tmp/test/v2_app`;
 
   beforeEach(() => {
-    mkdir("-p", src);
-    mkdir("-p", `${dest}/src/stylesheets`);
+    mkdir("-p", [
+      src,
+      `${dest}/src/stylesheets`
+    ]);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
     editor.write(`${src}/app.css`, ".sampleClass { color: red; }");
   });
 
   afterEach(() => {
-    rm("-rf", src);
-    rm("-rf", dest);
+    rm("-rf", [src, dest]);
   });
 
   it("should copy v1 CSS to an SCSS file", async () => {
