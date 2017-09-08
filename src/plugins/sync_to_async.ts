@@ -105,7 +105,8 @@ function buildWrapZafClientExpression(
         types.thisExpression(),
         types.identifier("zafClient")
       ),
-      types.stringLiteral(path)
+      types.stringLiteral(path),
+      ...rest
     ])
   );
 }
@@ -214,14 +215,15 @@ const syncToAsyncVisitor = {
       // on whether there were any arguments passed to the exp).
       if (exp.node.arguments.length) {
         let nexp;
+        const rest = exp.node.arguments.slice(1);
         // If the method is one of ticketFields, userFierlds or organizationFields
         // then we need to create a v2 path that uses the colon-delimited style, i.e.
         // `ticketFields:brand`
         if (/^(ticket|user|organization)Fields$/.test(name)) {
           const fieldName = `${name}:${exp.get("arguments.0").node.value}`;
-          nexp = buildWrapZafClientExpression(fieldName);
+          nexp = buildWrapZafClientExpression(fieldName, ...rest);
         } else {
-          nexp = buildWrapZafClientExpression(names, ...exp.node.arguments);
+          nexp = buildWrapZafClientExpression(names, ...rest);
         }
         if (nexp) {
           exp.replaceWith(nexp);

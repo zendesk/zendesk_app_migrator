@@ -250,6 +250,17 @@ describe("migrate app js", () => {
                      }`)
                   );
                 });
+                it("should support set operations", async () => {
+                  writeFixtureSrc(`foo: function() {
+                    const fields = this.${api}("brand", "foo");
+                   }`);
+                  await subject(options);
+                  expect(readMigratedSrc()).to.have.string(
+                    wrapExpectedSrc(`foo: async function() {
+                      const fields = await wrapZafClient(this.zafClient, "${api}:brand", "foo"); 
+                     }`)
+                  );
+                });
               });
             });
           });
