@@ -6,9 +6,11 @@ import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import subject from "../../steps/correct_version";
 import { fromJS, Map } from "immutable";
+
 describe("correct version", () => {
   let editor;
   let options: Map<string, any>;
+  const manifestPath = "v1/manifest.json";
 
   before(() => {
     editor = fsEditor.create(memFs.create());
@@ -16,18 +18,18 @@ describe("correct version", () => {
   });
 
   afterEach(() => {
-    editor.delete("v1/manifest.json");
+    editor.delete(manifestPath);
   });
 
   it("should pass with a version < 2.0", () => {
-    editor.writeJSON("v1/manifest.json", {
+    editor.writeJSON(manifestPath, {
       frameworkVersion: "1.0"
     });
     return expect(subject(options)).to.eventually.be.fulfilled;
   });
 
   it("should raise an exception with a version >= 2.0", () => {
-    editor.writeJSON("v1/manifest.json", {
+    editor.writeJSON(manifestPath, {
       frameworkVersion: "2.0"
     });
     return expect(subject(options)).to.eventually.be.rejectedWith(
