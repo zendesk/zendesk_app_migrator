@@ -17,7 +17,7 @@ The migrator executes a series of tasks to:
 - Update the manifest file
   - Change to `"frameworkVersion": "2.0"`
   - Rewrite locations to v2 hash syntax
-- Rewrites JavaScript code from v1 app.js
+- Rewrite JavaScript code from v1 app.js
 - Creates an HTML file from template that imports all the necessary deps., including v1 shims/helpers
 
 #### App Scaffold
