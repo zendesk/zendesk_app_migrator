@@ -319,9 +319,9 @@ function hasLocation(manifest: IManifest, name: string): boolean {
   // Store the intersection of all the possible locations in a
   // new transient property on the manifest object.
   if (!manifest.allLocations) {
-    let { location, noTemplate } = manifest;
+    let { location } = manifest;
     manifest.allLocations = chain([])
-      .concat(location, noTemplate)
+      .concat(location)
       .compact()
       .uniq();
   }
