@@ -5,18 +5,21 @@ window.helpers = helpers;
 window.Base64 = Base64;
 
 <% if (helpers.async) { %>
+const invokeMethods = /^(hide|show|preloadPane|popover|enableSave|disableSave|setIconState|notify)$/
 const wrapZafClient = async (client, apiPath, ...rest) => {
+  let method = "get";
+  if (!invokeMethods.test(apiPath) && rest.length) {
+    method = "set";
+  } else {
+    method = "invoke";
+  }
   try {
     let result;
-    // const client = ZAFClient.init();
-    // If we have args, this is a set or invoke.
-    // Everything else should be a get
     // Use destructuring to get the value from path on 
     // result object
-    if (rest.length) {
-      ({ [apiPath]: result } = await client.set(apiPath, ...rest));
-    } else {
-      ({ [apiPath]: result } = await client.get(apiPath));
+    ({ [apiPath]: result, errors } = await client[method](apiPath, ...rest));
+    if (Object.keys(errors).length) {
+      console.warn(`Some errors were encountered in request ${apiPath}`, errors);
     }
     return result;
   } catch ({ message }) {

@@ -337,15 +337,30 @@ export default (json, path, cache) => {
   const hasTicket = hasLocation(json, "ticket");
   const hasUser = hasLocation(json, "user");
   const hasOrg = hasLocation(json, "organization");
+  const hasNavBar = hasLocation(json, "nav_bar");
+  const hasTopBar = hasLocation(json, "top_bar");
+  const hasBar = hasNavBar || hasTopBar;
   const apis = new Map<string, boolean>([
+    ["currentUser", true],
+    ["currentAccount", true],
+    ["notify", true],
+    ["hide", true],
+    ["show", true],
+
     ["ticket", hasTicket],
+    ["disableSave", hasTicket],
+    ["enableSave", hasTicket],
+
     ["user", hasUser],
     ["organization", hasOrg],
-    ["currentUser", true], // available everywhere
-    ["currentAccount", true], // available everywhere
     ["ticketFields", hasTicket],
     ["userFields", hasUser],
-    ["organizationFields", hasOrg]
+    ["organizationFields", hasOrg],
+
+    ["popover", hasTopBar],
+    ["preloadPane", hasBar],
+    ["setIconState", hasBar],
+    ["iconSymbol", hasBar]
   ]);
   // This is where all the changes will be made to the v1 AST
   // We store container here so we can test whether ObjectProperties
