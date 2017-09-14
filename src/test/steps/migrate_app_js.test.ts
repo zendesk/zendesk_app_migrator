@@ -255,6 +255,21 @@ describe("migrate app js", () => {
               );
             });
 
+            it("should handle cases where bind or then are chained onto a parent expression", async () => {
+              writeFixtureSrc(`foo: function() {
+                this.someMethod(this.${location}()).then(() => {});
+              }`);
+              await subject(options);
+              expect(readMigratedSrc()).to.have.string(
+                wrapExpectedSrc(
+                  `foo: async function() {
+                    const _${location} = await wrapZafClient(this.zafClient, "${location}");
+                    this.someMethod(_${location}).then(() => {});
+                  }`
+                )
+              );
+            });
+
             const api = `${location}Fields`;
             describe(api, () => {
               describe("with no arguments", () => {
