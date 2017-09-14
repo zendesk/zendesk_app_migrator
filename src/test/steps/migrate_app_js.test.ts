@@ -286,7 +286,7 @@ describe("migrate app js", () => {
                 });
               });
               describe("with arguments", () => {
-                it("should use the v2 colon-delimited DSL", async () => {
+                it("should pass the api and field names to the wrapZafClient helper", async () => {
                   writeFixtureSrc(`foo: function() {
                      const fields = this.${api}("brand");
                     }`);
@@ -297,7 +297,7 @@ describe("migrate app js", () => {
                      }`)
                   );
                 });
-                it("should support set operations", async () => {
+                it("should pass the api, field names, and value to set to the wrapZafClient helper", async () => {
                   writeFixtureSrc(`foo: function() {
                     const fields = this.${api}("brand", "foo");
                    }`);
