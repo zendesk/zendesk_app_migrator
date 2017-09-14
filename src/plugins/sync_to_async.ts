@@ -4,11 +4,11 @@ import { compact, uniq, chain, get } from "lodash";
 /**
  * Tests the name of a member expression's identifier
  * to check whether it is a call to a UI Widgets (jQuery adapter) API
- *
- * @param {any} name 
+ * 
+ * @param {string} name 
  * @returns {boolean} 
  */
-function isUIWidgetExpression(name): boolean {
+function isUIWidgetExpression(name: string): boolean {
   return /^zd((Combo)?Select)?Menu$/.test(name);
 }
 
@@ -126,7 +126,7 @@ const syncToAsyncVisitor = {
     // app methods that had become async in the first pass.
     if (asyncMethods) return;
     if (!(path.inList && container.includes(path))) return;
-    const vp = path.isObjectProperty() ? path.get("value") : path.get("body");
+    let vp = path.isObjectProperty() ? path.get("value") : path.get("body");
     if (
       (vp.isFunctionExpression() && !cache.has(path.node.key.name)) ||
       vp.isCallExpression() ||
@@ -134,7 +134,7 @@ const syncToAsyncVisitor = {
     ) {
       let arg,
         scope = vp.scope;
-      if (!scope) {
+      if (vp.isCallExpression() || !scope) {
         // If the method declaration is in the form `{ foo: _.debounce(function() { ...  })  }`
         // (which is quite common), then we should take the first argument to the CallExpression,
         // in this case `_.debounce()`, to be the actual app method FunctionExpression.
@@ -146,6 +146,7 @@ const syncToAsyncVisitor = {
           (arg = vp.get("arguments.0")) &&
           arg.isFunctionExpression()
         ) {
+          vp = arg;
           scope = arg.scope;
         }
       }
@@ -154,7 +155,7 @@ const syncToAsyncVisitor = {
       // Create an object to store metadata about the current app
       // method.  Store the scope of the app method, so as to be
       // able to push binding declarations there later.
-      cache.set(path.node.key.name, { scope });
+      cache.set(path.node.key.name, { scope, vp });
     }
   },
   MemberExpression(path, { cache, apis, methodName, asyncMethods }) {
@@ -214,22 +215,15 @@ const syncToAsyncVisitor = {
       // Next, try work out whether it is a get, set, or invoke (depending
       // on whether there were any arguments passed to the exp).
       if (exp.node.arguments.length) {
-        let nexp;
-        const rest = exp.node.arguments.slice(1);
+        let nexp, apiPath;
         // If the method is one of ticketFields, userFierlds or organizationFields
         // then we need to create a v2 path that uses the colon-delimited style, i.e.
         // `ticketFields:brand`
-        if (/^(ticket|user|organization)Fields$/.test(name)) {
-          const fieldName = `${name}:${exp.get("arguments.0").node.value}`;
-          nexp = buildWrapZafClientExpression(fieldName, ...rest);
-        } else {
-          nexp = buildWrapZafClientExpression(names, ...rest);
-        }
-        if (nexp) {
-          exp.replaceWith(nexp);
-          exp.skip();
-          toAsync = true;
-        }
+        apiPath = names.length ? `${name}:${names.join(".")}` : name;
+        nexp = buildWrapZafClientExpression(apiPath, ...exp.node.arguments);
+        exp.replaceWith(nexp);
+        exp.skip();
+        toAsync = true;
       } else if (exp.parentPath.isVariableDeclarator() && !names.length) {
         // If the exp is an assignment of one of the "root" v1 apis, i.e.
         // `var ticket = this.ticket();`, then we can reuse the binding.
@@ -305,7 +299,11 @@ const syncToAsyncVisitor = {
       asyncMethods.push(opName);
     }
     // Set the FunctionExpression node to be async.
-    op.node.value.async = true;
+    opCache.vp.node.async = true;
+    if (exp.getFunctionParent().scope !== opCache.scope) {
+      exp.getFunctionParent().node.async = true;
+    }
+    // op.node.value.async = true;
     // Keep a reference to the method being async in metadata for lookup later
     opCache.async = true;
   }
