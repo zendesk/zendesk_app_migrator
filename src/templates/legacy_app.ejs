@@ -8,17 +8,20 @@ window.Base64 = Base64;
 const invokeMethods = /^(hide|show|preloadPane|popover|enableSave|disableSave|setIconState|notify)$/
 const wrapZafClient = async (client, apiPath, ...rest) => {
   let method = "get";
-  if (!invokeMethods.test(apiPath) && rest.length) {
-    method = "set";
-  } else {
+  const isInvoke = invokeMethods.test(apiPath);
+  if (!isInvoke && rest.length) {
+    if (/^(ticket|user|organization)(Fields|\.customField)$/.test(apiPath)) {
+      apiPath = `${apiPath}:${rest.shift()}`;
+    }
+    if (rest.length) method = "set";
+  } else if (isInvoke) {
     method = "invoke";
   }
   try {
-    let result;
-    // Use destructuring to get the value from path on 
-    // result object
+    let result, errors;
+    // Use destructuring to get the value from path on result object
     ({ [apiPath]: result, errors } = await client[method](apiPath, ...rest));
-    if (Object.keys(errors).length) {
+    if (errors && Object.keys(errors).length) {
       console.warn(`Some errors were encountered in request ${apiPath}`, errors);
     }
     return result;
