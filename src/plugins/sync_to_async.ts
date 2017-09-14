@@ -249,17 +249,27 @@ const syncToAsyncVisitor = {
         replaceReferencesForBinding(binding);
         toAsync = true;
       } else if (!(id = opCache[name])) {
-        // If we don't have an existing cached reference to a binding for this
-        // v1 api, then we will create a new binding in the scope, and store a
-        // reference to it in the cache, i.e. `{ ticket: "_ticket2"  }`.
-        id = opCache.scope.generateUidIdentifier(name);
-        // This hoists the new variable to the method scope
-        opCache.scope.push({
-          id,
-          kind: "const",
-          init: buildWrapZafClientExpression(name)
-        });
-        opCache[name] = id;
+        // Check whether this is an expression statement, which will mean there
+        // is no assignment. If an expression statement, it's most likely that the
+        // API call appears in the body of an app method.  The most probable type of
+        // API call would be a set or invoke expression.  In this case, just replacing the
+        // expression means we won't be optimising if the same API is called again in the
+        // same app method, but this is an acceptable edge case.
+        if (exp.parentPath.isExpressionStatement()) {
+          exp.replaceWith(buildWrapZafClientExpression(name));
+        } else {
+          // If we don't have an existing cached reference to a binding for this
+          // v1 api, then we will create a new binding in the scope, and store a
+          // reference to it in the cache, i.e. `{ ticket: "_ticket2"  }`.
+          id = opCache.scope.generateUidIdentifier(name);
+          // This hoists the new variable to the method scope
+          opCache.scope.push({
+            id,
+            kind: "const",
+            init: buildWrapZafClientExpression(name)
+          });
+          opCache[name] = id;
+        }
         toAsync = true;
       }
       // If we previously created a binding and hoisted, then we need to

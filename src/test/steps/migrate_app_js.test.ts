@@ -115,6 +115,38 @@ describe("migrate app js", () => {
         return `(function() { return { ${js} }; })();`;
       };
 
+      describe("with invoke", () => {
+        beforeEach(() => {
+          editor.writeJSON(`${src}/manifest.json`, {
+            location: "nav_bar"
+          });
+        });
+        it("should migrate the v1 api to be async/await", async () => {
+          writeFixtureSrc(`foo: function() {
+            this.preloadPane();
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(`foo: async function() {
+              await wrapZafClient(this.zafClient, "preloadPane");
+            }`)
+          );
+        });
+        it("shouldn't create any bindings for repeated api calls", async () => {
+          writeFixtureSrc(`foo: function() {
+            this.preloadPane();
+            this.preloadPane();
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(`foo: async function() {
+              await wrapZafClient(this.zafClient, "preloadPane");
+              await wrapZafClient(this.zafClient, "preloadPane");
+            }`)
+          );
+        });
+      });
+
       ["ticket", "user", "organization"].forEach(location => {
         describe(`when the v1 app is in the ${location} location`, () => {
           beforeEach(() => {
