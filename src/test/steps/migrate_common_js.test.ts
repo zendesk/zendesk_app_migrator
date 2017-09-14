@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { mkdir, rm, exec } from "shelljs";
+import { mkdir, rm, exec, test as exists } from "shelljs";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import subject from "../../steps/migrate_common_js";
@@ -24,10 +24,7 @@ describe("migrate common js", () => {
   `;
 
   beforeEach(() => {
-    mkdir("-p", [
-      `${src}/lib/utils`,
-      `${dest}/src/javascripts`
-    ]);
+    mkdir("-p", [`${src}/lib/utils`, `${dest}/src/javascripts`]);
     editor = fsEditor.create(memFs.create());
     options = Map({ src, dest, editor });
     exec(`echo '${sampleCode}' > ${src}/lib/utils/test_utils.js`);
@@ -39,13 +36,17 @@ describe("migrate common js", () => {
   });
 
   describe("with no v1 `lib` folder", () => {
-    beforeEach(() => rm("-rf", `${src}/lib`));
+    beforeEach(() => {
+      const pth = `${src}/lib`;
+      if (exists("-e", pth)) {
+        rm("-rf", pth);
+      }
+    });
 
     it("does nothing", async () => {
       options = await subject(options);
       expect(options).not.to.exist;
-      expect(editor.exists(`${dest}/src/javascripts/lib/test.js`)).to.be
-        .false;
+      expect(editor.exists(`${dest}/src/javascripts/lib/test.js`)).to.be.false;
     });
   });
 
@@ -53,8 +54,7 @@ describe("migrate common js", () => {
     it("copies the lib folder to the destination", async () => {
       options = await subject(options);
       expect(options.get("hasCommonJs")).to.be.true;
-      expect(editor.exists(`${dest}/src/javascripts/lib/test.js`)).to.be
-        .true;
+      expect(editor.exists(`${dest}/src/javascripts/lib/test.js`)).to.be.true;
     });
 
     it("rewrites require statements within to be relative", async () => {

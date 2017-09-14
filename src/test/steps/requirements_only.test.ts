@@ -2,7 +2,7 @@ import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const { expect } = chai;
-import { mkdir, rm, exec } from "shelljs";
+import { mkdir, rm, exec, test as exists } from "shelljs";
 import subject from "../../steps/requirements_only";
 import { Map } from "immutable";
 
@@ -16,7 +16,9 @@ describe("requirements only", () => {
   });
 
   afterEach(() => {
-    rm("-rf", src);
+    if (exists(src)) {
+      rm("-rf", src);
+    }
   });
 
   describe("with an app.js file present", () => {
