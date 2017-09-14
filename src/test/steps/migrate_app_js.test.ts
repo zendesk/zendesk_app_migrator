@@ -293,7 +293,7 @@ describe("migrate app js", () => {
                   await subject(options);
                   expect(readMigratedSrc()).to.have.string(
                     wrapExpectedSrc(`foo: async function() {
-                      const fields = await wrapZafClient(this.zafClient, "${api}:brand");
+                      const fields = await wrapZafClient(this.zafClient, "${api}", "brand");
                      }`)
                   );
                 });
@@ -304,7 +304,7 @@ describe("migrate app js", () => {
                   await subject(options);
                   expect(readMigratedSrc()).to.have.string(
                     wrapExpectedSrc(`foo: async function() {
-                      const fields = await wrapZafClient(this.zafClient, "${api}:brand", "foo"); 
+                      const fields = await wrapZafClient(this.zafClient, "${api}", "brand", "foo"); 
                      }`)
                   );
                 });

@@ -24,7 +24,8 @@ export default async (options: Map<string, any>) => {
     "undef",
     "console",
     "unreachable",
-    "debugger"
+    "debugger",
+    "useless-escape"
   ].reduce((memo, rule) => {
     memo[`no-${rule}`] = 0;
     return memo;
