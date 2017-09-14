@@ -4,6 +4,48 @@ import Base64 from "base64";
 window.helpers = helpers;
 window.Base64 = Base64;
 
+<% if (helpers.async) { %>
+const invokeMethods = /^(hide|show|preloadPane|popover|enableSave|disableSave|setIconState|notify)$/
+const wrapZafClient = async (client, apiPath, ...rest) => {
+  let method = "get";
+  const isInvoke = invokeMethods.test(apiPath);
+  if (!isInvoke && rest.length) {
+    if (/^(ticket|user|organization)(Fields|\.customField)$/.test(apiPath)) {
+      apiPath = `${apiPath}:${rest.shift()}`;
+    }
+    if (rest.length) method = "set";
+  } else if (isInvoke) {
+    method = "invoke";
+  }
+  try {
+    let result, errors;
+    // Use destructuring to get the value from path on result object
+    ({ [apiPath]: result, errors } = await client[method](apiPath, ...rest));
+    if (errors && Object.keys(errors).length) {
+      console.warn(`Some errors were encountered in request ${apiPath}`, errors);
+    }
+    return result;
+  } catch ({ message }) {
+    console.error(message);
+  }
+};
+<% }; %>
+
+<% if (helpers.uiWidgets) { %>
+import ZendeskMenus from "zendesk_menus";
+const {
+  Menu,
+  SelectMenu,
+  ComboSelectMenu,
+  MenuUtils: {
+    makeJqueryPlugin
+  }
+} = ZendeskMenus;
+makeJqueryPlugin('zdMenu', Menu);
+makeJqueryPlugin('zdSelectMenu', SelectMenu);
+makeJqueryPlugin('zdComboSelectMenu', ComboSelectMenu);
+<% }; %>
+
 const App = <%- code %>
 
 export default BaseApp.extend(App);

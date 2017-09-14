@@ -14,6 +14,7 @@ const cli = meow(
   Options
     -p, --path        Path to the app to be migrated
     -r, --replace-v1  Whether or not to replace the v1 app files with the v2 files
+    -a, --auto        Try to automatically migrate all JavaScript/CSS. Note: may be unstable, please test extensively
 
   Examples
     $ app_migrator migrate --path /path/to/my/app/directory/
@@ -21,7 +22,8 @@ const cli = meow(
   {
     alias: {
       p: "path",
-      r: "replace-v1"
+      r: "replace-v1",
+      a: "auto"
     }
   }
 );

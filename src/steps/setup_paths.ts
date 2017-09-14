@@ -8,7 +8,6 @@ import * as chalk from "chalk";
 
 export default async (options: Map<string, any>) => {
   let src = options.get("path");
-  const editor = options.get("editor");
   const dest = join(src, "v2", sep);
   const replaceV1 = options.get("replaceV1", false);
   // Log out the `src` and `dest` paths for developer reference

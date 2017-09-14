@@ -2,9 +2,10 @@ import "es6-promise/auto";
 import * as chalk from "chalk";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
-import * as emoji from "node-emoji";
+import { emojify } from "node-emoji";
 import * as ProgressBar from "progress";
 import { List, Map } from "immutable";
+import { prompt } from "inquirer";
 
 // This monkeypatch is necessary for for–await-of to work in Typescript v2.4+
 (Symbol as any).asyncIterator =
@@ -13,6 +14,7 @@ import { List, Map } from "immutable";
 export interface CliOptions {
   path: string;
   replaceV1?: boolean;
+  auto?: boolean;
 }
 
 class Migrator {
@@ -79,6 +81,25 @@ class Migrator {
     const options: Map<string, any> = Map({
       editor
     }).merge(cliOptions);
+
+    if (cliOptions.auto) {
+      const { auto } = await prompt([
+        {
+          type: "confirm",
+          name: "auto",
+          message: `You've used the ${chalk.bold(
+            "auto"
+          )} flag.  Auto migration is experimental and may be unstable, do you wish to proceed anyway?`,
+          default: true
+        }
+      ]);
+      if (!auto) {
+        console.log(
+          chalk.bold.red(`Migration cancelled ${emojify(":crying_cat_face:")}`)
+        );
+        return;
+      }
+    }
     // Iterate asynchronously through the steps,
     // passing the resulting options object from each step
     // into the next step
@@ -86,11 +107,10 @@ class Migrator {
       for await (const newOptions of migratr.perform(options)) {
         if (!migratr.progressBar.complete) migratr.progressBar.tick();
       }
-      console.log(
-        chalk.bold.green(emoji.emojify("Finished all steps! :rocket:"))
-      );
+      console.log(chalk.bold.green(emojify("Finished all steps! :rocket:")));
     } catch (err) {
       migratr.progressBar.interrupt(chalk.bold.red(err.message));
+      throw err;
     }
   }
 }
