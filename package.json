@@ -41,12 +41,9 @@
     "progress": "^2.0.0",
     "recast": "^0.12.6",
     "shelljs": "^0.7.8",
-    "tslib": "^1.7.1",
-    "zendesk_app_migrator": "^0.2.2"
+    "tslib": "^1.7.1"
   },
-  "bundledDependencies": [
-    "app_scaffold"
-  ],
+  "bundledDependencies": ["app_scaffold"],
   "devDependencies": {
     "@types/babel-generator": "^6.25.0",
     "@types/babel-traverse": "^6.25.2",
