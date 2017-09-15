@@ -1,6 +1,6 @@
 {
   "name": "zendesk_app_migrator",
-  "version": "0.2.12",
+  "version": "0.3.0",
   "description": "CLI to migrate v1 zendesk_app_framework apps to v2",
   "main": "./lib/index.js",
   "typings": "./lib/index",
@@ -44,7 +44,9 @@
     "tslib": "^1.7.1",
     "zendesk_app_migrator": "^0.2.2"
   },
-  "bundledDependencies": ["app_scaffold"],
+  "bundledDependencies": [
+    "app_scaffold"
+  ],
   "devDependencies": {
     "@types/babel-generator": "^6.25.0",
     "@types/babel-traverse": "^6.25.2",
