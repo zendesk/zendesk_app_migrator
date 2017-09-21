@@ -1,0 +1,501 @@
+.zd-menu-root {
+  box-sizing: border-box;
+}
+
+.zd-selectmenu-root,
+.zd-searchmenu-root,
+.zd-combo-selectmenu-root {
+  font-size: 11px;
+  position: relative;
+  background-color: #FFFFFF;
+}
+
+.zd-combo-selectmenu .zd-searchmenu-base {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding:0 5px;
+  font-size: 12px;
+}
+
+.zd-menu-root,
+.zd-selectmenu,
+.zd-combo-selectmenu,
+.zd-searchmenu {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: none;
+}
+
+.zd-selectmenu .zd-menu-root,
+.zd-searchmenu .zd-menu-root,
+.zd-combo-selectmenu .zd-menu-root,
+.zd-selectmenu .zd-menu-panel-root,
+.zd-searchmenu .zd-menu-panel-root,
+.zd-combo-selectmenu .zd-menu-panel-root {
+  position: absolute;
+  z-index: 10000;
+}
+
+.zd-menu-panel-root .zd-menu-panel-holder {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 300px;
+}
+
+.zd-menu-panel-root.zd-menu-root {
+  overflow-y: hidden;
+}
+
+.zd-selectmenu-base {
+  position: relative;
+  width: 100%;
+  display: inline-block;
+  border: 1px solid #d3d3d3;
+  color: #000000;
+  background-color: #FFFFFF;
+  text-align: left;
+  height: 28px;
+  text-decoration: none;
+  outline-width: 0;
+  padding: 0 0 0 5px;
+  border-radius: 2px;
+  line-height: 18px;
+}
+
+.zd-state-disabled .zd-selectmenu-base {
+  cursor: not-allowed;
+}
+
+.zd-state-disabled.zd-selectmenu-root,
+.zd-state-disabled.zd-searchmenu-root,
+.zd-state-disabled.zd-combo-selectmenu-root,
+.zd-state-disabled.zd-menu-root {
+  opacity: 0.6;
+}
+
+.zd-searchmenu-base {
+  width: 100%;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  position: relative;
+  display: inline-block;
+  border: 1px solid #d3d3d3;
+  color: #555555;
+  background-color: #FFFFFF;
+  text-align: left;
+  height: 28px;
+  text-decoration: none;
+  outline-width: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 5px;
+  font-size: 12px;
+}
+
+.zd-selectmenu-base-content {
+  display: block;
+  color: #555555;
+  font-size: 12px;
+  padding: 0 22px 0 0px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.zd-menu-root {
+  position: relative;
+  height: 208px;
+  border: 1px solid #aaaaaa;
+  z-index: 1;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  background-color: #FFFFFF;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.zd-menu-panel-root {
+  position: relative;
+}
+
+.zd-combo-selectmenu .zd-highlight,
+.zd-selectmenu .zd-highlight,
+.zd-searchmenu .zd-highlight {
+  font-weight: bold;
+  color: #000000;
+  background-color: #F8F8DD;
+}
+
+.zd-state-hover .zd-selectmenu-base,
+.zd-state-focus .zd-searchmenu-base {
+  border-color: #aaaaaa;
+}
+
+.zd-menu-list-holder {
+  background-color: #FFFFFF;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.zd-menu-item {
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+  color: #444444;
+  background-color: #FFFFFF;
+  font-size: 12px;
+}
+
+.zd-menu-item.autocomplete-label:first-child {
+  font-weight: bold;
+}
+
+.zd-menu-item.autocomplete-label:last-child {
+  font-style: italic;
+}
+
+.zd-menu-item-icon {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 16px;
+  height: 16px;
+}
+
+.zd-menu-item.zd-item-focus a {
+  color: #111111;
+}
+
+.zd-menu-item.zd-item-disabled {
+  background-color: #f6f6f6;
+  cursor: default;
+}
+
+.zd-menu-item.zd-item-disabled a {
+  color: #ccc;
+  cursor: inherit;
+}
+
+.zd-menu-item > a {
+  display: block;
+  color: #666;
+  line-height: 18px;
+  padding: 5px 8px 6px 7px;
+  text-decoration: none;
+  outline-width: 0;
+}
+
+.zd-menu-back-link > a {
+  color: #999999;
+}
+
+.zd-menu-link > a {
+  padding-right: 16px;
+  color: #000000;
+}
+
+.zd-menu-item.zd-item-focus {
+  background-color: #e9e9e9;
+}
+
+.zd-selectmenu-base-arrow,
+.zd-menu-item-arrow  {
+  position: absolute;
+  width: 0px;
+  height: 0px;
+}
+
+.zd-icon-arrow-up,
+.zd-state-position-up .zd-icon-arrow-down {
+  border-left:  4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom:4px solid #888888;
+  border-top-width: 0px;
+  top: 50%;
+  right: 7px;
+  margin-top: -2px;
+}
+
+.zd-icon-arrow-down {
+  border-left:  4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top:   4px solid #888888;
+  top: 50%;
+  right: 7px;
+  margin-top: -2px;
+}
+
+.zd-icon-arrow-right {
+  border-top:    4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left:   4px solid #888888;
+  top: 50%;
+  right: 9px;
+  margin-top: -4px;
+}
+
+.zd-icon-arrow-left {
+  border-top:    4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right:  4px solid #888888;
+  top: 50%;
+  right: 9px;
+  margin-top: -4px;
+}
+
+.zd-state-focus .zd-icon-arrow-up,   .zd-state-hover .zd-icon-arrow-up   { border-bottom-color: #222222;}
+.zd-state-focus .zd-icon-arrow-down, .zd-state-hover .zd-icon-arrow-down { border-top-color:    #222222;}
+
+.zd-menu-item-arrow {}
+.zd-state-hover {}
+
+.zd-state-focus .zd-selectmenu-base,
+.zd-state-focus .zd-searchmenu-base {
+  border-color: #78A300;
+  box-shadow: 0 0 3px #78a300;
+  outline: medium none;
+}
+
+.zd-menu-autofit-mode.zd-menu-root {
+  height: auto;
+  max-height: 300px;
+}
+
+.zd-menu-autofit-mode .zd-menu-root,
+.zd-menu-autofit-mode .zd-menu-panel-root {
+  height: auto;
+  max-height: 300px;
+}
+
+.zd-menu-autofit-mode .zd-menu-list-holder {
+  position: relative;
+}
+
+.zd-tag-menu-root {
+  background-color: #ffffff;
+  border: 1px solid #D3D3D3;
+  border-radius: 2px;
+  box-shadow: inset 0 0 1px 0 #DDDDDD;
+  box-sizing: border-box;
+  cursor: pointer;
+  margin: 0;
+  min-height: 32px;
+  outline: none;
+}
+
+.zd-tag-menu-root:hover {
+  border-color: #999;
+}
+
+.zd-tag-menu-root.zd-state-focus {
+  border-color: #527000;
+  border-radius: 0;
+  box-shadow: 0 0 3px #78a300;
+  outline: thick none;
+}
+
+.zd-tag-menu-root .zd-menu-list-holder {
+  padding: 4px 4px 1px 4px;
+  box-sizing: border-box;
+}
+
+.zd-tag-item {
+  background-color: #F4F4F4;
+  border: 1px solid #DDD;
+  border-radius: 3px;
+  color: #333;
+  display: inline-block;
+  font-size: 11px;
+  line-height: 13px;
+  margin: 0 3px 3px 0;
+  padding: 3px 17px 4px 6px;
+  position: relative;
+  word-wrap: break-word;
+  word-break: break-all;
+  -ms-word-break: break-all;
+}
+
+.zd-tag-item a {
+  outline: none;
+}
+
+.zd-tag-item:focus {
+  background-color: #6D6D6D;
+  border-color: #666;
+  color: white;
+  outline: none;
+}
+
+.zd-tag-item:focus .zd-tag-close:hover {
+  color: white;
+}
+
+.zd-tag-close {
+  font-size: 12px;
+  color: #C6C6C6;
+  cursor: pointer;
+  padding: 3px;
+  padding-right: 2px;
+  position: absolute;
+  top: 0;
+  right: 1px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+   -khtml-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+.zd-tag-close:hover {
+  color: black;
+}
+.zd-item-focus .zd-tag-close:hover {
+  color: #ffffff;
+}
+
+.zd-state-disabled .zd-tag-close,
+.zd-state-disabled .zd-tag-editor-holder,
+.zd-item-disabled .zd-tag-close {
+  display: none;
+}
+
+.zd-state-disabled .zd-tag-item,
+.zd-tag-item.zd-item-disabled {
+  padding-right: 6px;
+}
+
+.zd-tag-editor {
+  border: none;
+  border-radius: 0;
+  color: #333;
+  display: inline-block;
+  font-size: 12px;
+  line-height: 16px;
+  min-height: 13px;
+  min-width: 5px;
+  position: relative;
+  outline: none;
+  background-color: transparent;
+  width: 100px;
+  padding: 3px;
+  margin:0;
+}
+
+.zd-tag-shortener {
+  color: #333;
+  display: inline-block;
+  font-size: 11px;
+  line-height: 13px;
+  margin: 0 3px 3px 0;
+}
+
+.zd-tag-item.zd-item-focus {
+  background-color: #6D6D6D;
+  border-color: #666;
+  color: white;
+  outline: none;
+}
+
+.zd-tag-editor-holder {
+  width:1px;
+  height:1px;
+  overflow: hidden;
+}
+
+.zd-state-focus .zd-tag-editor-holder {
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.zd-tag-editor-holder button {
+  width: 1px;
+  height: 1px;
+  border-width: 0;
+  background-color: transparent;
+}
+
+.zd-tag-editor-holder .zd-searchmenu-base {
+  border-width: 0;
+  height: 22px;
+  padding-left: 8px;
+  box-shadow: none;
+  outline: medium none;
+}
+
+.zd-tag-menu-root {
+  position: relative;
+}
+
+.zd-multiselect.zd-state-hover:after {
+  content: '';
+  border-left:  4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top:   4px solid #888888;
+  bottom: 12px;
+  right: 7px;
+  position: absolute;
+  margin-top: -2px;
+}
+
+.zd-multiselect .zd-selectmenu-base-arrow {
+  display: none;
+}
+
+.zd-multiselect .zd-combo-selectmenu .zd-searchmenu-base,
+.zd-multiselect .zd-combo-selectmenu .zd-selectmenu-base {
+  width: 100%;
+  height: 22px;
+}
+
+.zd-multiselect .zd-combo-selectmenu .zd-selectmenu-base-content {
+  display: none;
+}
+
+.zd-multiselect .zd-combo-selectmenu .zd-selectmenu-base {
+  background-image: none;
+}
+
+.zd-menu-root.zd-menu-with-checkboxes .zd-leaf input[type="checkbox"] {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+.zd-menu-root.zd-menu-with-checkboxes .zd-leaf a {
+  padding-left: 28px;
+}
+
+.zd-zero-state-holder {
+  display: none;
+  padding: 3px;
+}
+
+.zd-state-zero .zd-zero-state-holder {
+  display: block;
+}
+
+.zd-state-zero .zd-tag-editor-holder {
+  width: 100%;
+}
+
+.zd-state-zero .zd-tag-editor {
+  width: 100%;
+}
+
+.zd-menu-focus-shim {
+  padding:0;
+  margin:0;
+  width:1px;
+  height:1px;
+}

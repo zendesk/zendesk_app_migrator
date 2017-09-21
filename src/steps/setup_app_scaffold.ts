@@ -2,7 +2,6 @@ import { Map } from "immutable";
 import { resolve } from "path";
 
 export default async (options: Map<string, any>) => {
-  const src = options.get("src");
   const dest = options.get("dest");
   const editor = options.get("editor");
   // Copy files from app scaffold as basis for migrated app source
@@ -20,16 +19,23 @@ export default async (options: Map<string, any>) => {
   // It _may_ be OK to leave it here, as it _may_ be OK for the
   // Migrator to be more permissive, in the interests of getting
   // a migrated v1 app working as much as possible.
+  const rules = [
+    "unused-vars",
+    "undef",
+    "console",
+    "unreachable",
+    "debugger",
+    "useless-escape"
+  ].reduce((memo, rule) => {
+    memo[`no-${rule}`] = 0;
+    return memo;
+  }, {});
   const migratorConfig = eslintConfig.merge({
     root: true,
+    rules,
     globals: {
       helpers: true,
       Base64: true
-    },
-    rules: {
-      "no-unused-vars": 0,
-      "no-undef": 0,
-      "no-console": 0
     }
   });
   editor.writeJSON(`${dest}/.eslintrc`, migratorConfig);
