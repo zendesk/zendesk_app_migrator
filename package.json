@@ -9,7 +9,7 @@
     "app_migrator": "./lib/index.js"
   },
   "engines" : {
-    "node" : ">=7.0.0"
+    "node" : ">=6.11.3"
   },
   "scripts": {
     "build": "tsc -p .",
