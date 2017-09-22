@@ -5,14 +5,15 @@ import { emojify } from "node-emoji";
 import { existsSync } from "fs";
 import { get } from "lodash";
 import * as chalk from "chalk";
+import * as logger from "winston";
 
 export default async (options: Map<string, any>) => {
   let src = options.get("path");
   const dest = join(src, "v2", sep);
   const replaceV1 = options.get("replaceV1", false);
   // Log out the `src` and `dest` paths for developer reference
-  console.log(chalk.yellow(`App will be migrated from: ${src}`));
-  console.log(chalk.yellow(`App will be migrated to: ${dest}`));
+  logger.info(chalk.yellow(`App will be migrated from: ${src}`));
+  logger.info(chalk.yellow(`App will be migrated to: ${dest}`));
   // If we're replacing the v1 app, we should copy everything to `v1`
   if (replaceV1) {
     let pkg;
@@ -39,7 +40,7 @@ export default async (options: Map<string, any>) => {
     if (!replace) {
       throw new Error(`Migration cancelled ${emojify(":crying_cat_face:")}`);
     }
-    console.log(chalk.bold.yellow(`v1 App will be backed up to: ${src}/v1/`));
+    logger.info(chalk.bold.yellow(`v1 App will be backed up to: ${src}/v1/`));
   }
   return options.merge({
     src,
