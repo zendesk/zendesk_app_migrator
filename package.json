@@ -10,12 +10,13 @@
   },
   "scripts": {
     "build": "tsc -p .",
-    "build-watch": "nodemon --watch src --ext ts --exec yarn build",
+    "build:watch": "nodemon --watch src --ext ts --exec yarn build",
     "pretest": "yarn run build",
-    "test": "mocha ./lib/test/**/*.test.js",
+    "test": "mocha ./lib/test/steps/*.test.js",
     "preversion": "yarn run build",
     "postversion": "git push --follow-tags && yarn publish",
-    "test-watch": "nodemon --watch src --ext ts --exec yarn test"
+    "test:watch": "nodemon --watch src --ext ts --exec yarn test",
+    "test:integration": "mocha -t 60000 ./lib/test/integration/*.test.js"
   },
   "author": "Zendesk <support@zendesk.com>",
   "license": "Apache-2.0",
@@ -66,6 +67,7 @@
     "eslint-config-prettier": "^2.3.0",
     "eslint-plugin-prettier": "^2.2.0",
     "mocha": "^3.5.0",
+    "nodegit": "^0.20.2",
     "nodemon": "^1.11.0",
     "sinon": "^3.2.1",
     "ts-node": "^3.3.0",

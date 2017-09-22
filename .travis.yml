@@ -3,18 +3,28 @@ node_js:
   - "7"
 sudo: false
 dist: trusty
+apt:
+  sources:
+    - ubuntu-toolchain-r-test
+  packages:
+    - libstdc++-4.9-dev
 env:
-  - TASK=yarn_test
-  - SECURITYSCAN=srcclr
+  - TASK=test
+  - TASK=srcclr
+  - TASK=test:integration
+matrix:
+  fast_finish: true
+  allow_failures:
+    - TASK=test:integration
 script:
   - |
-    if [[ "$SECURITYSCAN" == "srcclr" ]]
+    if [[ "$TASK" == "srcclr" ]]
     then
         echo "Starting Source clear ..."
         curl -sSL https://download.sourceclear.com/ci.sh | bash
     else
-        echo "Running Yarn tests"
-        yarn test
+        echo "Running tests"
+        yarn run $TASK
     fi
 cache: yarn
 branches:
