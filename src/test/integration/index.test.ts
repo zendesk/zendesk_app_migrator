@@ -17,7 +17,20 @@ describe("integration tests", () => {
   };
   const apps: any[] = [
     { repo: "user_data_app" },
-    { repo: "five_most_recent_app" }
+    { repo: "five_most_recent_app" },
+    { repo: "timetracking_app" },
+    { repo: "answer_suggestion_app" },
+    { repo: "linked_ticket_app" },
+    { repo: "notification_app" },
+    { repo: "search_app" },
+    { repo: "bookmarks_app" },
+    { repo: "related_tickets_app" },
+    { repo: "hangouts_app" },
+    { repo: "text_app" },
+    { repo: "highrise_app" },
+    { repo: "box_app" },
+    { repo: "infusionsoft_app" },
+    { repo: "iframe_app" }
   ];
 
   afterEach(() => {
