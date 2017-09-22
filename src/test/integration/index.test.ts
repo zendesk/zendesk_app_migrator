@@ -3,7 +3,7 @@ import * as Git from "nodegit";
 import { expect } from "chai";
 import { rm } from "shelljs";
 import { merge } from "lodash";
-import { basename } from "path";
+import { basename, join } from "path";
 import { mkdtempSync } from "fs";
 import Migrator from "../../migrator";
 
@@ -25,7 +25,7 @@ describe("integration tests", () => {
   });
 
   async function prepareApp(app): Promise<string> {
-    const tmp = mkdtempSync("../tmp/");
+    const tmp = mkdtempSync(join(process.cwd(), "tmp"));
     const repo = await Git.Clone(`https://github.com/zendesk/${app.repo}`, tmp);
     return tmp;
   }
