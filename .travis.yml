@@ -3,11 +3,10 @@ node_js:
   - "7"
 sudo: false
 dist: trusty
-apt:
-  sources:
-    - ubuntu-toolchain-r-test
-  packages:
-    - libstdc++-4.9-dev
+before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -q
+  - sudo apt-get install libstdc++-4.9-dev -y
 env:
   - TASK=test
   - TASK=srcclr
