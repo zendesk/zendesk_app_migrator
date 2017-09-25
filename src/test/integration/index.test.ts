@@ -24,11 +24,10 @@ describe("integration tests", () => {
     { repo: "notification_app" },
     { repo: "search_app" },
     { repo: "bookmarks_app" },
-    { repo: "related_tickets_app" },
-    { repo: "hangouts_app" },
+    // { repo: "hangouts_app" },
     { repo: "text_app" },
     { repo: "highrise_app" },
-    { repo: "box_app" },
+    // { repo: "box_app" },
     { repo: "infusionsoft_app" },
     { repo: "iframe_app" }
   ];
