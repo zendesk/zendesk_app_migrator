@@ -23,6 +23,7 @@ const cli = meow(
     alias: {
       p: "path",
       r: "replace-v1",
+      v: "version",
       a: "auto"
     }
   }
