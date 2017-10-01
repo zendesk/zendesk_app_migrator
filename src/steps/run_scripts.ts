@@ -29,10 +29,13 @@ const runShellScript = (cmd, cwd = __dirname, options = {}) => {
 
 export default async (options: Map<string, any>) => {
   const dest = options.get("dest");
+  // For better performance, prefer yarn over npm if available
+  const yarnInstalled = !!exec("yarn --version", { silent: true }).stdout;
+  const pkgManager = yarnInstalled ? "yarn" : "npm";
   console.log(chalk.bold.green("Installing dependencies"));
-  await runShellScript("yarn install --force", dest);
+  await runShellScript(`${pkgManager} install`, dest);
   console.log(chalk.bold.green("Building v2 app"));
-  await runShellScript("yarn run build", dest);
+  await runShellScript(`${pkgManager} run build`, dest);
   console.log(chalk.bold.green("Validating v2 app"));
   await runShellScript(`zat validate --path ${join(dest, "dist", sep)}`);
 };
