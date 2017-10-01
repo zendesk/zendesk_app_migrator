@@ -6,6 +6,7 @@ import { emojify } from "node-emoji";
 import * as ProgressBar from "progress";
 import { List, Map } from "immutable";
 import { prompt } from "inquirer";
+import * as logger from "winston";
 
 // This monkeypatch is necessary for for–await-of to work in Typescript v2.4+
 (Symbol as any).asyncIterator =
@@ -15,6 +16,8 @@ export interface CliOptions {
   path: string;
   replaceV1?: boolean;
   auto?: boolean;
+  force?: boolean;
+  quiet?: boolean;
 }
 
 class Migrator {
@@ -43,6 +46,7 @@ class Migrator {
   ]);
 
   constructor() {
+    logger.cli();
     this.progressBar = new ProgressBar(
       ` [:bar] ${chalk.bold(":current/:total")} steps complete`,
       {
@@ -59,11 +63,7 @@ class Migrator {
     // work out why there is a type incompatibility with the iterator
     for (const stepName of <any>Migrator.steps) {
       options = options.set("step", stepName);
-      // console.log(chalk.bold.gray.underline(`Starting step: ${stepName}`));
-      // FIXME: Work out why dynamic imports aren't working in the downlevel
-      // https://blogs.msdn.microsoft.com/typescript/2017/06/27/announcing-typescript-2-4/
       const step = require(`./steps/${stepName}`).default;
-      // const step = await import(`./steps/${stepName}`);
       const newOptions = await step(options);
       options = options.merge(newOptions);
       yield options;
@@ -81,8 +81,11 @@ class Migrator {
     const options: Map<string, any> = Map({
       editor
     }).merge(cliOptions);
-
-    if (cliOptions.auto) {
+    // This is so that when we're running in CI mode, we can silence
+    // all of the noise and just report on pass/fail
+    if (cliOptions.quiet) logger.level = "error";
+    // Force may be used in CI mode so that confirmation is assumed
+    if (cliOptions.auto && !cliOptions.force) {
       const { auto } = await prompt([
         {
           type: "confirm",
@@ -94,7 +97,7 @@ class Migrator {
         }
       ]);
       if (!auto) {
-        console.log(
+        logger.warn(
           chalk.bold.red(`Migration cancelled ${emojify(":crying_cat_face:")}`)
         );
         return;
@@ -105,9 +108,10 @@ class Migrator {
     // into the next step
     try {
       for await (const newOptions of migratr.perform(options)) {
-        if (!migratr.progressBar.complete) migratr.progressBar.tick();
+        if (!migratr.progressBar.complete && !cliOptions.quiet)
+          migratr.progressBar.tick();
       }
-      console.log(chalk.bold.green(emojify("Finished all steps! :rocket:")));
+      logger.info(chalk.bold.green(emojify("Finished all steps! :rocket:")));
     } catch (err) {
       migratr.progressBar.interrupt(chalk.bold.red(err.message));
       throw err;
