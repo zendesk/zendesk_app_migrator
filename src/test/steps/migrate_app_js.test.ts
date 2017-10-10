@@ -308,6 +308,17 @@ describe("migrate app js", () => {
                      }`)
                   );
                 });
+                it("should correctly chain together invoke calls", async () => {
+                  writeFixtureSrc(`foo: function() {
+                    this.${api}("sharedWith").hide();
+                   }`);
+                  await subject(options);
+                  expect(readMigratedSrc()).to.have.string(
+                    wrapExpectedSrc(`foo: async function() {
+                       await wrapZafClient(this.zafClient, "${api}:sharedWith.hide"); 
+                      }`)
+                  );
+                });
               });
             });
           });

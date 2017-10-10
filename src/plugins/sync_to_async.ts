@@ -1,5 +1,5 @@
 import * as types from "babel-types";
-import { compact, uniq, chain, get } from "lodash";
+import { compact, uniq, chain, get, last } from "lodash";
 
 /**
  * Tests the name of a member expression's identifier
@@ -77,6 +77,8 @@ function getExpressionToReplace(path): { exp: any; names: string[] } {
       }
       if (p.isMemberExpression()) {
         names.push(p.node.property.name);
+      } else if (p.isCallExpression() && p.node.arguments.length) {
+        names.push(p.node.arguments[0].value);
       }
       return false;
     });
@@ -214,7 +216,7 @@ const syncToAsyncVisitor = {
       // If `name` appears in `apis`, it will be a call to a v1 api.
       // Next, try work out whether it is a get, set, or invoke (depending
       // on whether there were any arguments passed to the exp).
-      if (exp.node.arguments.length) {
+      if (/^(ticket|user|organization)Fields$/.test(name)) {
         let nexp, apiPath;
         // If the method is one of ticketFields, userFierlds or organizationFields
         // then we need to create a v2 path that uses the colon-delimited style, i.e.
