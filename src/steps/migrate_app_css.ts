@@ -21,5 +21,5 @@ export default async (options: Map<string, any>) => {
       `${dest}/src/stylesheets/zendesk_menus.css`
     );
   }
-  editor.write(destCSS, format(css, { parser: "postcss" }));
+  editor.write(destCSS, format(css, { parser: "scss" }));
 };
