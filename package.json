@@ -23,7 +23,7 @@
   "author": "Zendesk <support@zendesk.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "app_scaffold": "zendesk/app_scaffold#v0.2.0",
+    "app_scaffold": "zendesk/app_scaffold#v0.3.0",
     "babel-generator": "7.0.0-alpha.20",
     "babel-template": "7.0.0-alpha.20",
     "babel-traverse": "7.0.0-alpha.20",
