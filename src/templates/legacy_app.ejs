@@ -5,7 +5,7 @@ window.helpers = helpers;
 window.Base64 = Base64;
 
 <% if (helpers.async) { %>
-const invokeMethods = /^(hide|show|preloadPane|popover|enableSave|disableSave|setIconState|notify)$/
+const invokeMethods = /(hide|show|toggle|preloadPane|popover|enable(Save)?|disable(Save)?|setIconState|notify)$/
 const wrapZafClient = async (client, apiPath, ...rest) => {
   let method = "get";
   const isInvoke = invokeMethods.test(apiPath);
