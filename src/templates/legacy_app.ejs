@@ -11,7 +11,8 @@ const wrapZafClient = async (client, apiPath, ...rest) => {
   const isInvoke = invokeMethods.test(apiPath);
   if (!isInvoke && rest.length) {
     if (/^(ticket|user|organization)(Fields|\.customField)$/.test(apiPath)) {
-      apiPath = `${apiPath}:${rest.shift()}`;
+      const joinChar = typeof rest[0] === "string" ? ":" : ".";
+      apiPath += joinChar + rest.shift();
     }
     if (rest.length) method = "set";
   } else if (isInvoke) {
