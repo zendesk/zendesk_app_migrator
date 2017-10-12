@@ -1,5 +1,5 @@
 import * as types from "babel-types";
-import { compact, uniq, chain, get, last } from "lodash";
+import { compact, uniq, chain, get } from "lodash";
 
 /**
  * Tests the name of a member expression's identifier
@@ -216,9 +216,15 @@ const syncToAsyncVisitor = {
       // If `name` appears in `apis`, it will be a call to a v1 api.
       // Next, try work out whether it is a get, set, or invoke (depending
       // on whether there were any arguments passed to the exp).
-      if (/^(ticket|user|organization)Fields$/.test(name)) {
+      // If it is an invoke, arguments may have been passed to an intermediate
+      // api call expression, but not the final one,
+      // i.e. `this.ticketFields("sharedWith").hide();
+      if (
+        exp.node.arguments.length ||
+        /^(ticket|user|organization)Fields$/.test(name)
+      ) {
         let nexp, apiPath;
-        // If the method is one of ticketFields, userFierlds or organizationFields
+        // If the method is one of ticketFields, userFields or organizationFields
         // then we need to create a v2 path that uses the colon-delimited style, i.e.
         // `ticketFields:brand`
         apiPath = names.length ? `${name}:${names.join(".")}` : name;
