@@ -66,7 +66,7 @@ class Migrator {
       }
     );
     this.insight = new Insight({
-      trackingCode: "UA-XXXXXXXX-X",
+      trackingCode: "UA-970836-50",
       pkg
     });
   }
