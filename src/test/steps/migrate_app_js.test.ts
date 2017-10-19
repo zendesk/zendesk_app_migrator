@@ -319,6 +319,17 @@ describe("migrate app js", () => {
                       }`)
                   );
                 });
+                it("should chain together invoke calls using dot syntax for integers", async () => {
+                  writeFixtureSrc(`foo: function() {
+                    this.${api}(0).hide();
+                   }`);
+                  await subject(options);
+                  expect(readMigratedSrc()).to.have.string(
+                    wrapExpectedSrc(`foo: async function() {
+                       await wrapZafClient(this.zafClient, "${api}.0.hide"); 
+                      }`)
+                  );
+                });
               });
             });
           });

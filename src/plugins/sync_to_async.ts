@@ -227,7 +227,8 @@ const syncToAsyncVisitor = {
         // If the method is one of ticketFields, userFields or organizationFields
         // then we need to create a v2 path that uses the colon-delimited style, i.e.
         // `ticketFields:brand`
-        apiPath = names.length ? `${name}:${names.join(".")}` : name;
+        const joinChar: string = typeof names[0] === "string" ? ":" : ".";
+        apiPath = names.length ? name + joinChar + names.join(".") : name;
         nexp = buildWrapZafClientExpression(apiPath, ...exp.node.arguments);
         exp.replaceWith(nexp);
         exp.skip();
