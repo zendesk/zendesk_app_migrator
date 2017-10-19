@@ -1,8 +1,10 @@
-import * as recast from "recast";
-import * as prettier from "prettier";
+import { parse } from "babylon";
+import traverse from "babel-traverse";
+import generate from "babel-generator";
+import * as types from "babel-types";
 import { dirname, sep, join } from "path";
 import { Map } from "immutable";
-const { namedTypes, visit } = recast.types;
+import * as chalk from "chalk";
 
 function tryResolve(path: string): boolean {
   try {
@@ -11,6 +13,41 @@ function tryResolve(path: string): boolean {
   } catch (error) {
     return false;
   }
+}
+
+export function isRequireStatement(path) {
+  return (
+    path.isCallExpression() &&
+    path.get("callee").isIdentifier() &&
+    path.node.callee.name === "require"
+  );
+}
+
+export function getDepthOfPath(path) {
+  let depth = 0;
+  path.findParent(p => {
+    depth++;
+    return p.isProgram();
+  });
+  return depth;
+}
+
+export function findLowestDepthPath(ast, type: string) {
+  let lowestDepth = Number.POSITIVE_INFINITY;
+  let lowestDepthPath;
+  traverse(ast, {
+    [type](path) {
+      const depth = getDepthOfPath(path);
+      if (!lowestDepthPath) {
+        lowestDepthPath = path;
+        lowestDepth = depth;
+      } else if (lowestDepth > depth) {
+        lowestDepthPath = path;
+        lowestDepth = depth;
+      }
+    }
+  });
+  return lowestDepthPath;
 }
 
 function findModuleWithinDirs(
@@ -42,7 +79,7 @@ export function requireStatementProcessorFactory(
 ) {
   const src = options.get("src");
   return (code: Buffer | string, filePath: string) => {
-    const ast = recast.parse(code.toString());
+    const ast = parse(code.toString());
     const filePathWithoutSrc = filePath.replace(
       new RegExp(`${join(src, sep)}`),
       ""
@@ -50,25 +87,29 @@ export function requireStatementProcessorFactory(
     const fileDir = dirname(filePathWithoutSrc);
     const baseDir = fileDir === "." ? "lib" : fileDir;
     const dirs = baseDir.split(sep);
-    visit(ast, {
-      visitCallExpression(path) {
+    traverse(ast, {
+      CallExpression(path) {
         const node = path.node;
         // Check whether there are any calls to `require("some_module")`
-        if (
-          namedTypes.Identifier.check(node.callee) &&
-          node.callee.name === "require"
-        ) {
+        if (isRequireStatement(path)) {
           // Keep the path to the module
-          let modulePath: string = node.arguments[0].value;
+          let modulePath = (path.node.arguments[0] as types.StringLiteral)
+            .value;
           // Check whether the module can be resolved by node
           // based on the existing path value
           const fp = join(src, baseDir, modulePath);
           if (tryResolve(fp)) {
-            node.arguments[0].value = relativeModulePath(modulePath, fileDir);
+            path
+              .get("arguments.0")
+              .replaceWith(
+                types.stringLiteral(relativeModulePath(modulePath, fileDir))
+              );
           } else {
             const foundModulePath = findModuleWithinDirs(modulePath, dirs, src);
             if (foundModulePath) {
-              node.arguments[0].value = foundModulePath;
+              path
+                .get("arguments.0")
+                .replaceWith(types.stringLiteral(foundModulePath));
             } else {
               throw new Error(
                 `Unable to resolve Common JS module: ${modulePath}`
@@ -76,10 +117,9 @@ export function requireStatementProcessorFactory(
             }
           }
         }
-        this.traverse(path);
       }
     });
-    code = recast.print(ast).code;
-    return pretty ? prettier.format(code) : code;
+
+    return generate(ast).code;
   };
 }

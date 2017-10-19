@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { statSync } from "fs";
 import { resolve } from "path";
 import * as chalk from "chalk";
@@ -13,6 +14,7 @@ const cli = meow(
   Options
     -p, --path        Path to the app to be migrated
     -r, --replace-v1  Whether or not to replace the v1 app files with the v2 files
+    -a, --auto        Try to automatically migrate all JavaScript/CSS. Note: may be unstable, please test extensively
     --insight         Switch on anonymous tracking to help improve the tool
     --no-insight      Switch off anonymous tracking
 
@@ -22,7 +24,9 @@ const cli = meow(
   {
     alias: {
       p: "path",
-      r: "replace-v1"
+      r: "replace-v1",
+      v: "version",
+      a: "auto"
     }
   }
 );

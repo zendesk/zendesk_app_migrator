@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
+import { mkdir, rm } from "shelljs";
 import subject from "../../steps/setup_app_scaffold";
 import { Map } from "immutable";
 
@@ -8,12 +9,16 @@ describe("setup app scaffold", () => {
   let editor;
   let options: Map<string, any>;
   const cwd = process.cwd();
-  const src = `${cwd}/src/test/fixtures/basic_ticket_sample_app`;
-  const dest = `${cwd}/src/test/fixtures/basic_ticket_sample_app/v2`;
+  const dest = `${cwd}/tmp/test/v2_app`;
 
   beforeEach(() => {
+    mkdir("-p", dest);
     editor = fsEditor.create(memFs.create());
-    options = Map({ src, dest, editor });
+    options = Map({ dest, editor });
+  });
+
+  afterEach(() => {
+    rm("-rf", dest);
   });
 
   it("should copy the app scaffold to the destination", async () => {
@@ -29,9 +34,20 @@ describe("setup app scaffold", () => {
   });
 
   it("should add custom eslint configuration", async () => {
+    const rules = [
+      "unused-vars",
+      "undef",
+      "console",
+      "unreachable",
+      "debugger"
+    ];
     await subject(options);
     const eslintConfig = editor.readJSON(`${dest}/.eslintrc`, { rules: {} });
-    expect(eslintConfig.rules).to.have.property("no-unused-vars", 0);
+    rules.forEach((rule) => {
+      expect(eslintConfig.rules).to.have.property(`no-${rule}`, 0);
+    });
     expect(eslintConfig).to.have.property("root", true);
+    expect(eslintConfig.globals).to.have.property("helpers", true);
+    expect(eslintConfig.globals).to.have.property("Base64", true);
   });
 });

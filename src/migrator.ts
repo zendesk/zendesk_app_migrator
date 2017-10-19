@@ -2,12 +2,13 @@ import "es6-promise/auto";
 import * as chalk from "chalk";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
-import * as emoji from "node-emoji";
+import { emojify } from "node-emoji";
 import * as ProgressBar from "progress";
 import { has } from "lodash";
 import { List, Map } from "immutable";
 import * as Insight from "insight";
 const pkg = require("../package.json");
+import { prompt } from "inquirer";
 
 // This monkeypatch is necessary for for–await-of to work in Typescript v2.4+
 (Symbol as any).asyncIterator =
@@ -18,6 +19,7 @@ export interface CliOptions {
   replaceV1?: boolean;
   insight?: boolean;
   noInsight?: boolean;
+  auto?: boolean;
 }
 
 class Migrator {
@@ -40,7 +42,6 @@ class Migrator {
     "requirements_only",
 
     "setup_app_scaffold",
-    "setup_npm_offline_cache",
 
     "migrate_common_js",
     "migrate_app_js",
@@ -103,6 +104,25 @@ class Migrator {
     const options: Map<string, any> = Map({
       editor
     }).merge(cliOptions);
+
+    if (cliOptions.auto) {
+      const { auto } = await prompt([
+        {
+          type: "confirm",
+          name: "auto",
+          message: `You've used the ${chalk.bold(
+            "auto"
+          )} flag.  Auto migration is experimental and may be unstable, do you wish to proceed anyway?`,
+          default: true
+        }
+      ]);
+      if (!auto) {
+        console.log(
+          chalk.bold.red(`Migration cancelled ${emojify(":crying_cat_face:")}`)
+        );
+        return;
+      }
+    }
     // Iterate asynchronously through the steps,
     // passing the resulting options object from each step
     // into the next step
@@ -110,13 +130,12 @@ class Migrator {
       for await (const newOptions of mgtr.perform(options)) {
         if (!mgtr.progressBar.complete) mgtr.progressBar.tick();
       }
-      console.log(
-        chalk.bold.green(emoji.emojify("Finished all steps! :rocket:"))
-      );
+      console.log(chalk.bold.green(emojify("Finished all steps! :rocket:")));
       mgtr.insight.track("migrator", "done");
     } catch (err) {
       mgtr.progressBar.interrupt(chalk.bold.red(err.message));
       mgtr.insight.track("migrator", "error", options.get("step"));
+      throw err;
     }
   }
 }

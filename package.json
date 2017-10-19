@@ -1,6 +1,6 @@
 {
   "name": "zendesk_app_migrator",
-  "version": "0.1.0",
+  "version": "0.3.2",
   "description": "CLI to migrate v1 zendesk_app_framework apps to v2",
   "main": "./lib/index.js",
   "typings": "./lib/index",
@@ -8,8 +8,11 @@
   "bin": {
     "app_migrator": "./lib/index.js"
   },
+  "engines": {
+    "node": ">=6.11.3"
+  },
   "scripts": {
-    "build": "./node_modules/.bin/tsc -p .",
+    "build": "tsc -p .",
     "build-watch": "nodemon --watch src --ext ts --exec yarn build",
     "pretest": "yarn run build",
     "test": "mocha --recursive ./lib/test",
@@ -17,13 +20,15 @@
     "postversion": "git push --follow-tags && yarn publish",
     "test-watch": "nodemon --watch src --ext ts --exec yarn test"
   },
-  "author": {
-    "name": "Zendesk",
-    "email": "support@zendesk.com"
-  },
+  "author": "Zendesk <support@zendesk.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "app_scaffold": "github:zendesk/app_scaffold#v0.1.x",
+    "app_scaffold": "zendesk/app_scaffold#v0.2.0",
+    "babel-generator": "7.0.0-alpha.20",
+    "babel-template": "7.0.0-alpha.20",
+    "babel-traverse": "7.0.0-alpha.20",
+    "babel-types": "7.0.0-alpha.20",
+    "babylon": "^6.18.0",
     "chalk": "^2.0.1",
     "es6-promise": "^4.1.1",
     "global": "^4.3.2",
@@ -42,7 +47,14 @@
     "shelljs": "^0.7.8",
     "tslib": "^1.7.1"
   },
+  "bundledDependencies": [
+    "app_scaffold"
+  ],
   "devDependencies": {
+    "@types/babel-generator": "^6.25.0",
+    "@types/babel-traverse": "^6.25.2",
+    "@types/babel-types": "^6.25.1",
+    "@types/babylon": "^6.16.2",
     "@types/chai": "^4.0.4",
     "@types/chai-as-promised": "^0.0.31",
     "@types/lodash": "^4.14.74",
@@ -51,6 +63,7 @@
     "@types/sinon": "^2.3.3",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
+    "ejs": "^2.5.7",
     "eslint": "^4.6.1",
     "eslint-config-google": "^0.9.1",
     "eslint-config-prettier": "^2.4.0",
@@ -59,6 +72,8 @@
     "nodemon": "^1.11.0",
     "sinon": "^3.2.1",
     "ts-node": "^3.3.0",
-    "typescript": "^2.5.2"
-  }
+    "typescript": "^2.5.2",
+    "uglify-es": "^3.0.28"
+  },
+  "repository": "git@github.com:zendesk/zendesk_app_migrator.git"
 }
