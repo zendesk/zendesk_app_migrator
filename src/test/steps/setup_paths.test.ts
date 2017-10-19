@@ -29,10 +29,7 @@ describe("setup paths", () => {
 
   describe("when using the --replace-v1 option", () => {
     beforeEach(() => {
-      logSpy = spy(console, "log");
-      promptStub = stub(inquirer, "prompt").returns(
-        Promise.resolve({ replace: "Y" })
-      );
+      promptStub.returns(Promise.resolve({ replace: "Y" }));
       options = options.set("replaceV1", true);
     });
 
