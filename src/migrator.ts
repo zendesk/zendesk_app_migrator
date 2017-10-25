@@ -1,5 +1,5 @@
 import "es6-promise/auto";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import { emojify } from "node-emoji";
