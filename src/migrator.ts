@@ -26,6 +26,8 @@ class Migrator {
   insight: Insight;
   progressBar: ProgressBar;
 
+  private static TRACKING_CODE = "migrator";
+
   private static _instance: Migrator;
   static get instance(): Migrator {
     if (!this._instance) {
@@ -94,7 +96,7 @@ class Migrator {
     const mgtr = Migrator.instance;
     // optOut will be undefined the first time insight runs
     if (has(cliOptions, "noInsight") || has(cliOptions, "insight")) {
-      mgtr.insight.optOut = cliOptions.insight ? false : true;
+      mgtr.insight.optOut = !cliOptions.insight;
     } else if (mgtr.insight.optOut === undefined) {
       // Have either of the explicit options been passed?
       await new Promise(res => mgtr.insight.askPermission(null, res));
@@ -131,10 +133,10 @@ class Migrator {
         if (!mgtr.progressBar.complete) mgtr.progressBar.tick();
       }
       console.log(chalk.bold.green(emojify("Finished all steps! :rocket:")));
-      mgtr.insight.track("migrator", "done");
+      mgtr.insight.track(Migrator.TRACKING_CODE, "done");
     } catch (err) {
       mgtr.progressBar.interrupt(chalk.bold.red(err.message));
-      mgtr.insight.track("migrator", "error", options.get("step"));
+      mgtr.insight.track(Migrator.TRACKING_CODE, "error", options.get("step"));
       throw err;
     }
   }
