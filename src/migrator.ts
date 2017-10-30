@@ -1,10 +1,13 @@
 import "es6-promise/auto";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import * as memFs from "mem-fs";
 import * as fsEditor from "mem-fs-editor";
 import { emojify } from "node-emoji";
 import * as ProgressBar from "progress";
+import { has } from "lodash";
 import { List, Map } from "immutable";
+import * as Insight from "insight";
+const pkg = require("../package.json");
 import { prompt } from "inquirer";
 
 // This monkeypatch is necessary for for–await-of to work in Typescript v2.4+
@@ -14,11 +17,24 @@ import { prompt } from "inquirer";
 export interface CliOptions {
   path: string;
   replaceV1?: boolean;
+  insight?: boolean;
+  noInsight?: boolean;
   auto?: boolean;
 }
 
 class Migrator {
-  protected progressBar: ProgressBar;
+  insight: Insight;
+  progressBar: ProgressBar;
+
+  private static TRACKING_CODE = "migrator";
+
+  private static _instance: Migrator;
+  static get instance(): Migrator {
+    if (!this._instance) {
+      this._instance = new Migrator();
+    }
+    return this._instance;
+  }
 
   static steps: List<string> = List([
     "setup_paths",
@@ -52,22 +68,24 @@ class Migrator {
         width: 20
       }
     );
+    this.insight = new Insight({
+      trackingCode: "UA-970836-50",
+      pkg
+    });
   }
 
-  protected async *perform(options: Map<string, any>) {
-    // FIXME: Having to type the iterable as <any> is ugly
-    // work out why there is a type incompatibility with the iterator
-    for (const stepName of <any>Migrator.steps) {
+  async *perform(options: Map<string, any>) {
+    for (const stepName of Migrator.steps[Symbol.iterator]()) {
       options = options.set("step", stepName);
-      // console.log(chalk.bold.gray.underline(`Starting step: ${stepName}`));
-      // FIXME: Work out why dynamic imports aren't working in the downlevel
-      // https://blogs.msdn.microsoft.com/typescript/2017/06/27/announcing-typescript-2-4/
-      const step = require(`./steps/${stepName}`).default;
-      // const step = await import(`./steps/${stepName}`);
+      const step = this.importStep(stepName);
       const newOptions = await step(options);
       options = options.merge(newOptions);
       yield options;
     }
+  }
+
+  importStep(stepName: string) {
+    return require(`./steps/${stepName}`).default;
   }
 
   static async migrate(cliOptions: CliOptions) {
@@ -75,7 +93,14 @@ class Migrator {
     const store = memFs.create();
     const editor = fsEditor.create(store);
     // Make a new instance of the Migrator
-    const migratr: Migrator = new Migrator();
+    const mgtr = Migrator.instance;
+    // optOut will be undefined the first time insight runs
+    if (has(cliOptions, "noInsight") || has(cliOptions, "insight")) {
+      mgtr.insight.optOut = !cliOptions.insight;
+    } else if (mgtr.insight.optOut === undefined) {
+      // Have either of the explicit options been passed?
+      await new Promise(res => mgtr.insight.askPermission(null, res));
+    }
     // Create options to be passed through steps
     // Flags passed to the CLI will be merged in
     const options: Map<string, any> = Map({
@@ -104,12 +129,14 @@ class Migrator {
     // passing the resulting options object from each step
     // into the next step
     try {
-      for await (const newOptions of migratr.perform(options)) {
-        if (!migratr.progressBar.complete) migratr.progressBar.tick();
+      for await (const newOptions of mgtr.perform(options)) {
+        if (!mgtr.progressBar.complete) mgtr.progressBar.tick();
       }
       console.log(chalk.bold.green(emojify("Finished all steps! :rocket:")));
+      mgtr.insight.track(Migrator.TRACKING_CODE, "done");
     } catch (err) {
-      migratr.progressBar.interrupt(chalk.bold.red(err.message));
+      mgtr.progressBar.interrupt(chalk.bold.red(err.message));
+      mgtr.insight.track(Migrator.TRACKING_CODE, "error", options.get("step"));
       throw err;
     }
   }
