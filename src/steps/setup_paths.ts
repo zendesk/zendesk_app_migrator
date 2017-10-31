@@ -4,7 +4,7 @@ import { prompt } from "inquirer";
 import { emojify } from "node-emoji";
 import { existsSync } from "fs";
 import { get } from "lodash";
-import * as chalk from "chalk";
+import chalk from "chalk"
 
 export default async (options: Map<string, any>) => {
   let src = options.get("path");

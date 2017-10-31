@@ -4,7 +4,7 @@ import generate from "babel-generator";
 import * as types from "babel-types";
 import { dirname, sep, join } from "path";
 import { Map } from "immutable";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 function tryResolve(path: string): boolean {
   try {
