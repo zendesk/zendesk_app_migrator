@@ -1,4 +1,4 @@
-import chalk from "chalk"
+import chalk from "chalk";
 import { Map } from "immutable";
 export default async (options: Map<string, any>) => {
   const src = options.get("src");
