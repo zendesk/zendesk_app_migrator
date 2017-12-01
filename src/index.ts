@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { statSync } from "fs";
 import { resolve } from "path";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import * as meow from "meow";
 import * as emoji from "node-emoji";
 import Migrator from "./migrator";
@@ -15,6 +15,8 @@ const cli = meow(
     -p, --path        Path to the app to be migrated
     -r, --replace-v1  Whether or not to replace the v1 app files with the v2 files
     -a, --auto        Try to automatically migrate all JavaScript/CSS. Note: may be unstable, please test extensively
+    --insight         Switch on anonymous tracking to help improve the tool
+    --no-insight      Switch off anonymous tracking
 
   Examples
     $ app_migrator migrate --path /path/to/my/app/directory/
