@@ -115,6 +115,86 @@ describe("migrate app js", () => {
         return `(function() { return { ${js} }; })();`;
       };
 
+      describe("with `this.when`", () => {
+        beforeEach(() => {
+          editor.writeJSON(`${src}/manifest.json`, {
+            location: "ticket_sidebar"
+          });
+        });
+        it("should replace with `Promise.all`", async () => {
+          writeFixtureSrc(`foo: function() {
+            this.when(aPromise);
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                Promise.all([aPromise]);
+              }`,
+              false
+            )
+          );
+        });
+        it("should replace with `Promise.all` and use a spread operator for apply", async () => {
+          writeFixtureSrc(`foo: function() {
+            this.when.apply(this, somePromises);
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                Promise.all(somePromises);
+              }`,
+              false
+            )
+          );
+        });
+      });
+
+      describe("with `this.promise`", () => {
+        beforeEach(() => {
+          editor.writeJSON(`${src}/manifest.json`, {
+            location: "ticket_sidebar"
+          });
+        });
+        it("should replace with `new Promise`", async () => {
+          writeFixtureSrc(`foo: function() {
+            this.promise(res => res());
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                new Promise(res => res());
+              }`,
+              false
+            )
+          );
+        });
+      });
+
+      describe('with `"abc%@".fmt(2)`', () => {
+        beforeEach(() => {
+          editor.writeJSON(`${src}/manifest.json`, {
+            location: "ticket_sidebar"
+          });
+        });
+        it('should replace with `fmt("abc%@", 2)`', async () => {
+          writeFixtureSrc(`foo: function() {
+            \"abc%@\".fmt(2);
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                helpers.fmt(\"abc%@\", 2);
+              }`,
+              false
+            )
+          );
+        });
+      });
+
       describe("with invoke", () => {
         beforeEach(() => {
           editor.writeJSON(`${src}/manifest.json`, {

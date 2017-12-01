@@ -178,7 +178,12 @@ const syncToAsyncVisitor = {
     }
     // Because we're looking for either v1 api calls, or calls to
     // other app methods, we only care about ThisExpression's.
-    if (!path.get("object").isThisExpression()) return;
+    if (
+      !path.get("object").isThisExpression() &&
+      !(path.get("object").isStringLiteral() && name === "fmt")
+    )
+      return;
+
     // `op` will be the containing app method definition, one of
     // the direct children of the `container`.
     const op = path.findParent(path => {
@@ -213,6 +218,46 @@ const syncToAsyncVisitor = {
       exp.skip();
       toAsync = true;
     } else if (apis.has(name)) {
+      if (/^when|promise|fmt$/.test(name)) {
+        switch (name) {
+          case "when":
+            const args =
+              names[0] === "apply"
+                ? exp.node.arguments.slice(1)
+                : [types.arrayExpression(exp.node.arguments)];
+            exp.replaceWith(
+              types.callExpression(
+                types.memberExpression(
+                  types.identifier("Promise"),
+                  types.identifier("all")
+                ),
+                args
+              )
+            );
+            break;
+          case "promise":
+            exp.replaceWith(
+              types.newExpression(
+                types.identifier("Promise"),
+                exp.node.arguments
+              )
+            );
+            break;
+          case "fmt":
+            exp.replaceWith(
+              types.callExpression(
+                types.memberExpression(
+                  types.identifier("helpers"),
+                  types.identifier("fmt")
+                ),
+                [exp.get("callee.object").node, ...exp.node.arguments]
+              )
+            );
+            break;
+        }
+        exp.skip();
+        return;
+      }
       // If `name` appears in `apis`, it will be a call to a v1 api.
       // Next, try work out whether it is a get, set, or invoke (depending
       // on whether there were any arguments passed to the exp).
@@ -363,6 +408,9 @@ export default (json, path, cache) => {
     ["notify", true],
     ["hide", true],
     ["show", true],
+    ["when", true],
+    ["promise", true],
+    ["fmt", true],
 
     ["ticket", hasTicket],
     ["disableSave", hasTicket],
