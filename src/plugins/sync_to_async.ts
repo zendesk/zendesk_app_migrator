@@ -268,16 +268,20 @@ const syncToAsyncVisitor = {
         exp.node.arguments.length ||
         /^(ticket|user|organization)Fields$/.test(name)
       ) {
-        let nexp, apiPath;
-        // If the method is one of ticketFields, userFields or organizationFields
-        // then we need to create a v2 path that uses the colon-delimited style, i.e.
-        // `ticketFields:brand`
-        const joinChar: string = typeof names[0] === "string" ? ":" : ".";
-        apiPath = names.length ? name + joinChar + names.join(".") : name;
-        nexp = buildWrapZafClientExpression(apiPath, ...exp.node.arguments);
-        exp.replaceWith(nexp);
-        exp.skip();
-        toAsync = true;
+        if (names[0] === "bind") {
+          exp.skip();
+        } else {
+          let nexp, apiPath;
+          // If the method is one of ticketFields, userFields or organizationFields
+          // then we need to create a v2 path that uses the colon-delimited style, i.e.
+          // `ticketFields:brand`
+          const joinChar: string = typeof names[0] === "string" ? ":" : ".";
+          apiPath = names.length ? name + joinChar + names.join(".") : name;
+          nexp = buildWrapZafClientExpression(apiPath, ...exp.node.arguments);
+          exp.replaceWith(nexp);
+          exp.skip();
+          toAsync = true;
+        }
       } else if (exp.parentPath.isVariableDeclarator() && !names.length) {
         // If the exp is an assignment of one of the "root" v1 apis, i.e.
         // `var ticket = this.ticket();`, then we can reuse the binding.

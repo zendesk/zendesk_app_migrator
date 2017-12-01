@@ -212,6 +212,20 @@ describe("migrate app js", () => {
             }`)
           );
         });
+        it("shouldn't wrap a bound method when passed as an argument to `then`", async () => {
+          writeFixtureSrc(`foo: function() {
+            new Promise(res => res()).then(this.preloadPane.bind(this));
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                new Promise(res => res()).then(this.preloadPane.bind(this));
+            }`,
+              false
+            )
+          );
+        });
         it("shouldn't create any bindings for repeated api calls", async () => {
           writeFixtureSrc(`foo: function() {
             this.preloadPane();
