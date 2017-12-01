@@ -5,17 +5,6 @@ sudo: false
 dist: trusty
 env:
   - TASK=yarn_test
-  - SECURITYSCAN=srcclr
-script:
-  - |
-    if [[ "$SECURITYSCAN" == "srcclr" ]]
-    then
-        echo "Starting Source clear ..."
-        curl -sSL https://download.sourceclear.com/ci.sh | bash
-    else
-        echo "Running Yarn tests"
-        yarn test
-    fi
 cache: yarn
 branches:
   only: [master]

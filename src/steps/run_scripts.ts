@@ -1,7 +1,7 @@
 import { exec } from "shelljs";
 import { Map } from "immutable";
 import { merge } from "lodash";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import * as emoji from "node-emoji";
 import { join, sep } from "path";
 
