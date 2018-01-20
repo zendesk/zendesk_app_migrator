@@ -15,7 +15,7 @@ export default async (options: Map<string, any>) => {
     const v1Files: string[] = sync("/*", {
       dot: true,
       root: `${src}`,
-      ignore: [`${src}/v2/**`, `${src}/v2`, `${src}/**/.git*/**`]
+      ignore: [`${src}/v2/**`, `${src}/v2`, `${src}/v1`, `${src}/**/.git*/**`]
     });
     // Create the v1 directory
     mkdir("-p", `${src}/v1`);
