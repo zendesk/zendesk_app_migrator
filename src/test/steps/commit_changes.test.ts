@@ -16,6 +16,7 @@ describe("commit changes", () => {
     editor = fsEditor.create(memFs.create());
     editor.write(`${src}/app.js`, "");
     editor.write(`${src}/v2/src/javascripts/legacy_app.js`, "");
+    editor.write(`${src}/v2/.babelrc`, "");
     options = Map({ src, editor });
   });
 
@@ -42,6 +43,9 @@ describe("commit changes", () => {
       expect(dest).to.equal(src);
       expect(test("-e", `${dest}/v2/src/javascripts/legacy_app.js`)).to.be.false;
       expect(test("-e", `${dest}/src/javascripts/legacy_app.js`)).to.be.true;
+      
+      expect(test("-e", `${dest}/v2/.babelrc`)).to.be.false;
+      expect(test("-e", `${dest}/.babelrc`)).to.be.true;
     });
 
     it("should backup the v1 app source files to a v1 folder", async () => {

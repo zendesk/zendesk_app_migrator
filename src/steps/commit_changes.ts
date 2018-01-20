@@ -22,7 +22,7 @@ export default async (options: Map<string, any>) => {
     // Move all the v1 files across to the backup directory
     mv(v1Files, `${src}/v1/`);
     // Move the v2 files to the root directory
-    mv("-n", `${src}/v2/*`, `${src}/`);
+    mv("-n", [`${src}/v2/*`, `${src}/v2/.[!.]*`], `${src}/`);
     // Remove the old v2 directory
     rm("-fR", `${src}/v2`);
     // Set the new dest on to options so that scripts will
