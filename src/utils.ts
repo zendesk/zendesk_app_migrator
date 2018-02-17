@@ -81,7 +81,7 @@ export function requireStatementProcessorFactory(
   return (code: Buffer | string, filePath: string) => {
     const ast = parse(code.toString());
     const filePathWithoutSrc = filePath.replace(
-      new RegExp(`${join(src, sep)}`),
+      `${join(src, sep)}`,
       ""
     );
     const fileDir = dirname(filePathWithoutSrc);
