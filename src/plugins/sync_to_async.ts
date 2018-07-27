@@ -259,8 +259,6 @@ const syncToAsyncVisitor = {
         return;
       }
       // If `name` appears in `apis`, it will be a call to a v1 api.
-      // Next, try work out whether it is a get, set, or invoke (depending
-      // on whether there were any arguments passed to the exp).
       // If it is an invoke, arguments may have been passed to an intermediate
       // api call expression, but not the final one,
       // i.e. `this.ticketFields("sharedWith").hide();
