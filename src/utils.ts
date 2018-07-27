@@ -1,10 +1,11 @@
 import { parse } from "babylon";
-import traverse from "babel-traverse";
+import traverse, { NodePath } from "babel-traverse";
 import generate from "babel-generator";
 import * as types from "babel-types";
 import { dirname, sep, join } from "path";
 import { Map } from "immutable";
 import chalk from "chalk";
+import { Expression } from 'babel-types';
 
 function tryResolve(path: string): boolean {
   try {
@@ -99,17 +100,13 @@ export function requireStatementProcessorFactory(
           // based on the existing path value
           const fp = join(src, baseDir, modulePath);
           if (tryResolve(fp)) {
-            path
-              .get("arguments.0")
-              .replaceWith(
-                types.stringLiteral(relativeModulePath(modulePath, fileDir))
-              );
+            const exp = path.get("arguments.0") as NodePath<Expression>;
+            exp.replaceWith(types.stringLiteral(relativeModulePath(modulePath, fileDir)));
           } else {
             const foundModulePath = findModuleWithinDirs(modulePath, dirs, src);
             if (foundModulePath) {
-              path
-                .get("arguments.0")
-                .replaceWith(types.stringLiteral(foundModulePath));
+              const exp = path.get("arguments.0") as NodePath<Expression>;
+              exp.replaceWith(types.stringLiteral(foundModulePath));
             } else {
               throw new Error(
                 `Unable to resolve Common JS module: ${modulePath}`
