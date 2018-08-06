@@ -25,11 +25,8 @@ The migrator executes a series of tasks to:
 
 #### App Scaffold
 
-The migrator has a hard dependency on the public
-[App Scaffold](https://github.com/zendesk/app_scaffold) project.
-
-When a v1 app is migrated, we leverage the features already built into the App
-Scaffold to transpile v1 app assets for v2.
+Please refer to [App Migration Scaffold](https://github.com/zendesk/zendesk_app_migrator/tree/master/lib/app_scaffold/README.md)
+for detailed documentation on developing, testing, building and deploying applications migrated to V2.
 
 ### Usage
 

@@ -141,10 +141,6 @@ anymatch@^2.0.0:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
 
-app_scaffold@zendesk/app_scaffold#v0.3.0:
-  version "0.1.0"
-  resolved "https://codeload.github.com/zendesk/app_scaffold/tar.gz/6303ff18398eec204f967906ef4e20fc84a1a488"
-
 aproba@^1.0.3:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/aproba/-/aproba-1.2.0.tgz#6802e6264efd18c790a1b0d517f0f2627bf2c94a"
