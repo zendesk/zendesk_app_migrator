@@ -110,19 +110,19 @@ package.json is a configuration file for [NPM](https://www.npmjs.com). NPM is a 
 webpack.config.js is a configuration file for [webpack](https://webpack.github.io/). Webpack is a JavaScript module bundler. For more information about webpack and how to configure it, see [What is webpack](http://webpack.github.io/docs/what-is-webpack.html).
 
 ## Initialization
-The App Scaffold's initialization code lives in [`src/index.js`](https://github.com/zendesk/app_scaffold/blob/master/src/javascripts/index.js). For more information, see [inline documentation](https://github.com/zendesk/app_scaffold/blob/master/src/javascripts/index.js).
+The App Scaffold's initialization code lives in [`src/index.js`](https://github.com/zendesk/zendesk_app_migrator/blob/master/lib/app_scaffold/src/javascripts/index.js). For more information, see [inline documentation](https://github.com/zendesk/zendesk_app_migrator/blob/master/lib/app_scaffold/src/javascripts/index.js).
 
 ## API Reference
 The App Scaffold provides some classes under `/lib` to help building apps.
 
 ### I18n
-The I18n (internationalization) module provides a `t` method and Handlebars helper to look up translations based on a key. For more information, see [Using the I18n module](https://github.com/zendesk/app_scaffold/blob/master/doc/i18n.md).
+The I18n (internationalization) module provides a `t` method and Handlebars helper to look up translations based on a key. For more information, see [Using the I18n module](https://github.com/zendesk/zendesk_app_migrator/blob/master/lib/app_scaffold/doc/i18n.md).
 
 ### Storage
-The Storage module provides helper methods to interact with `localStorage`. For more information, see [Using the Storage module](https://github.com/zendesk/app_scaffold/blob/master/doc/storage.md).
+The Storage module provides helper methods to interact with `localStorage`. For more information, see [Using the Storage module](https://github.com/zendesk/zendesk_app_migrator/blob/master/lib/app_scaffold/doc/storage.md).
 
 ### View
-The View module provides methods to simplify rendering Handlebars templates located under the templates folder. For more information, see [Using the View module](https://github.com/zendesk/app_scaffold/blob/master/doc/view.md).
+The View module provides methods to simplify rendering Handlebars templates located under the templates folder. For more information, see [Using the View module](https://github.com/zendesk/zendesk_app_migrator/blob/master/lib/app_scaffold/doc/view.md).
 
 ## Parameters and Settings
 
@@ -191,7 +191,7 @@ taking note of the created filename.
 For more information on the Zendesk Apps Tools please see the [documentation](https://developer.zendesk.com/apps/docs/apps-v2/getting_started#zendesk-app-tools).
 
 ## External Dependencies
-External dependencies are defined in a module, [`lib/external_assets.js`](https://github.com/zendesk/app_scaffold/blob/master/lib/external_assets.js). The export of the module is imported into [`webpack.config.js`](https://github.com/zendesk/app_scaffold/blob/master/webpack.config.js) at build-time. This ensures these dependencies are included on your app's `index.html` as well as in the test suite.
+External dependencies are defined in a module, [`lib/external_assets.js`](https://github.com/zendesk/zendesk_app_migrator/blob/master/lib/app_scaffold/lib/external_assets.js). The export of the module is imported into [`webpack.config.js`](https://github.com/zendesk/zendesk_app_migrator/blob/master/lib/app_scaffold/webpack.config.js) at build-time. This ensures these dependencies are included on your app's `index.html` as well as in the test suite.
 
 ## Useful Links
 Links to maintaining team, confluence pages, Datadog dashboard, Kibana logs, etc

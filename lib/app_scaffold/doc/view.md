@@ -53,7 +53,7 @@ view.renderTemplate('user_template', { name: 'Mikkel' }); // "<p>Hello, Mikkel!<
 ```
 
 ### view.switchTo(name, data)
-Updates the contents of the [section element within your app's layout](https://github.com/zendesk/app_scaffold/blob/b991264bdf5973da22be4d58708987817f97af43/lib/templates/layout.hdbs#L11) with the rendered template.
+Updates the contents of the [section element within your app's layout](https://github.com/zendesk/zendesk_app_migrator/blob/master/lib/app_scaffold/lib/templates/layout.hdbs#L11) with the rendered template.
 
 #### Arguments
 
