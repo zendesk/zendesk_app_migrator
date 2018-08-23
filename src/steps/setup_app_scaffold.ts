@@ -6,7 +6,7 @@ export default async (options: Map<string, any>) => {
   const editor = options.get("editor");
   // Copy files from app scaffold as basis for migrated app source
   editor.copy(
-    resolve(__dirname, "..", "..", "lib/app_scaffold/**"),
+    resolve(__dirname, "..", "..", "src/app_scaffold/**"),
     dest,
     {
       globOptions: { dot: true }
