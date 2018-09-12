@@ -3,7 +3,7 @@
 # App Migration Scaffold
 
 ## Description
-This scaffold is used by [zendesk_app_migrator](https://github.com/zendesk/zendesk_app_migrator), it contains modules and sample code to help you migrate from a v1 app. For detailed documentation on how to migrate from a v1 app, see our [Migrating to v2](https://developer.zendesk.com/apps/docs/apps-v2/migrating) guide on the Zendesk Developer Portal.
+This scaffold is used by [zendesk_app_migrator](https://github.com/zendesk/zendesk_app_migrator), it contains modules and sample code to help you migrate from a v1 app. For detailed documentation on how to migrate from a v1 app, see our [Migrating to Zendesk App Framework v2](https://developer.zendesk.com/apps/docs/apps-v2/migrating) guide on the Zendesk Developer Portal.
 
 ## Getting Started
 
