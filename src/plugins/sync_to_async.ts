@@ -77,6 +77,8 @@ function getExpressionToReplace(path): { exp: any; names: string[] } {
       }
       if (p.isMemberExpression()) {
         names.push(p.node.property.name);
+      } else if (p.isCallExpression() && p.node.arguments.length) {
+        names.push(p.node.arguments[0].value);
       }
       return false;
     });
@@ -176,7 +178,12 @@ const syncToAsyncVisitor = {
     }
     // Because we're looking for either v1 api calls, or calls to
     // other app methods, we only care about ThisExpression's.
-    if (!path.get("object").isThisExpression()) return;
+    if (
+      !path.get("object").isThisExpression() &&
+      !(path.get("object").isStringLiteral() && name === "fmt")
+    )
+      return;
+
     // `op` will be the containing app method definition, one of
     // the direct children of the `container`.
     const op = path.findParent(path => {
@@ -211,19 +218,68 @@ const syncToAsyncVisitor = {
       exp.skip();
       toAsync = true;
     } else if (apis.has(name)) {
-      // If `name` appears in `apis`, it will be a call to a v1 api.
-      // Next, try work out whether it is a get, set, or invoke (depending
-      // on whether there were any arguments passed to the exp).
-      if (exp.node.arguments.length) {
-        let nexp, apiPath;
-        // If the method is one of ticketFields, userFierlds or organizationFields
-        // then we need to create a v2 path that uses the colon-delimited style, i.e.
-        // `ticketFields:brand`
-        apiPath = names.length ? `${name}:${names.join(".")}` : name;
-        nexp = buildWrapZafClientExpression(apiPath, ...exp.node.arguments);
-        exp.replaceWith(nexp);
+      if (/^when|promise|fmt$/.test(name)) {
+        switch (name) {
+          case "when":
+            const args =
+              names[0] === "apply"
+                ? exp.node.arguments.slice(1)
+                : [types.arrayExpression(exp.node.arguments)];
+            exp.replaceWith(
+              types.callExpression(
+                types.memberExpression(
+                  types.identifier("Promise"),
+                  types.identifier("all")
+                ),
+                args
+              )
+            );
+            break;
+          case "promise":
+            exp.replaceWith(
+              types.newExpression(
+                types.identifier("Promise"),
+                exp.node.arguments
+              )
+            );
+            break;
+          case "fmt":
+            exp.replaceWith(
+              types.callExpression(
+                types.memberExpression(
+                  types.identifier("helpers"),
+                  types.identifier("fmt")
+                ),
+                [exp.get("callee.object").node, ...exp.node.arguments]
+              )
+            );
+            break;
+        }
         exp.skip();
-        toAsync = true;
+        return;
+      }
+      // If `name` appears in `apis`, it will be a call to a v1 api.
+      // If it is an invoke, arguments may have been passed to an intermediate
+      // api call expression, but not the final one,
+      // i.e. `this.ticketFields("sharedWith").hide();
+      if (
+        exp.node.arguments.length ||
+        /^(ticket|user|organization)Fields$/.test(name)
+      ) {
+        if (names[0] === "bind") {
+          exp.skip();
+        } else {
+          let nexp, apiPath;
+          // If the method is one of ticketFields, userFields or organizationFields
+          // then we need to create a v2 path that uses the colon-delimited style, i.e.
+          // `ticketFields:brand`
+          const joinChar: string = typeof names[0] === "string" ? ":" : ".";
+          apiPath = names.length ? name + joinChar + names.join(".") : name;
+          nexp = buildWrapZafClientExpression(apiPath, ...exp.node.arguments);
+          exp.replaceWith(nexp);
+          exp.skip();
+          toAsync = true;
+        }
       } else if (exp.parentPath.isVariableDeclarator() && !names.length) {
         // If the exp is an assignment of one of the "root" v1 apis, i.e.
         // `var ticket = this.ticket();`, then we can reuse the binding.
@@ -354,6 +410,9 @@ export default (json, path, cache) => {
     ["notify", true],
     ["hide", true],
     ["show", true],
+    ["when", true],
+    ["promise", true],
+    ["fmt", true],
 
     ["ticket", hasTicket],
     ["disableSave", hasTicket],

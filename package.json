@@ -1,6 +1,6 @@
 {
   "name": "zendesk_app_migrator",
-  "version": "0.3.3",
+  "version": "1.2.1",
   "description": "CLI to migrate v1 zendesk_app_framework apps to v2",
   "main": "./lib/index.js",
   "typings": "./lib/index",
@@ -23,7 +23,6 @@
   "author": "Zendesk <support@zendesk.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "app_scaffold": "zendesk/app_scaffold#v0.2.0",
     "babel-generator": "7.0.0-alpha.20",
     "babel-template": "7.0.0-alpha.20",
     "babel-traverse": "7.0.0-alpha.20",
@@ -34,22 +33,19 @@
     "global": "^4.3.2",
     "globby": "^6.1.0",
     "immutable": "^3.8.1",
-    "inquirer": "^3.2.3",
+    "inquirer": "^3.3.0",
     "insight": "^0.8.4",
     "lodash": "^4.17.4",
     "mem-fs": "^1.1.3",
     "mem-fs-editor": "^3.0.2",
     "meow": "^3.7.0",
     "node-emoji": "^1.8.1",
-    "prettier": "^1.6.1",
+    "prettier": "^1.7.3",
     "progress": "^2.0.0",
     "recast": "^0.12.6",
     "shelljs": "^0.7.8",
     "tslib": "^1.7.1"
   },
-  "bundledDependencies": [
-    "app_scaffold"
-  ],
   "devDependencies": {
     "@types/babel-generator": "^6.25.0",
     "@types/babel-traverse": "^6.25.2",

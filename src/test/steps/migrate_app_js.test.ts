@@ -115,6 +115,86 @@ describe("migrate app js", () => {
         return `(function() { return { ${js} }; })();`;
       };
 
+      describe("with `this.when`", () => {
+        beforeEach(() => {
+          editor.writeJSON(`${src}/manifest.json`, {
+            location: "ticket_sidebar"
+          });
+        });
+        it("should replace with `Promise.all`", async () => {
+          writeFixtureSrc(`foo: function() {
+            this.when(aPromise);
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                Promise.all([aPromise]);
+              }`,
+              false
+            )
+          );
+        });
+        it("should replace with `Promise.all` and use a spread operator for apply", async () => {
+          writeFixtureSrc(`foo: function() {
+            this.when.apply(this, somePromises);
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                Promise.all(somePromises);
+              }`,
+              false
+            )
+          );
+        });
+      });
+
+      describe("with `this.promise`", () => {
+        beforeEach(() => {
+          editor.writeJSON(`${src}/manifest.json`, {
+            location: "ticket_sidebar"
+          });
+        });
+        it("should replace with `new Promise`", async () => {
+          writeFixtureSrc(`foo: function() {
+            this.promise(res => res());
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                new Promise(res => res());
+              }`,
+              false
+            )
+          );
+        });
+      });
+
+      describe('with `"abc%@".fmt(2)`', () => {
+        beforeEach(() => {
+          editor.writeJSON(`${src}/manifest.json`, {
+            location: "ticket_sidebar"
+          });
+        });
+        it('should replace with `fmt("abc%@", 2)`', async () => {
+          writeFixtureSrc(`foo: function() {
+            \"abc%@\".fmt(2);
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                helpers.fmt(\"abc%@\", 2);
+              }`,
+              false
+            )
+          );
+        });
+      });
+
       describe("with invoke", () => {
         beforeEach(() => {
           editor.writeJSON(`${src}/manifest.json`, {
@@ -130,6 +210,20 @@ describe("migrate app js", () => {
             wrapExpectedSrc(`foo: async function() {
               await wrapZafClient(this.zafClient, "preloadPane");
             }`)
+          );
+        });
+        it("shouldn't wrap a bound method when passed as an argument to `then`", async () => {
+          writeFixtureSrc(`foo: function() {
+            new Promise(res => res()).then(this.preloadPane.bind(this));
+          }`);
+          await subject(options);
+          expect(readMigratedSrc()).to.have.string(
+            wrapExpectedSrc(
+              `foo: function() {
+                new Promise(res => res()).then(this.preloadPane.bind(this));
+            }`,
+              false
+            )
           );
         });
         it("shouldn't create any bindings for repeated api calls", async () => {
@@ -306,6 +400,28 @@ describe("migrate app js", () => {
                     wrapExpectedSrc(`foo: async function() {
                       const fields = await wrapZafClient(this.zafClient, "${api}", "brand", "foo"); 
                      }`)
+                  );
+                });
+                it("should correctly chain together invoke calls", async () => {
+                  writeFixtureSrc(`foo: function() {
+                    this.${api}("sharedWith").hide();
+                   }`);
+                  await subject(options);
+                  expect(readMigratedSrc()).to.have.string(
+                    wrapExpectedSrc(`foo: async function() {
+                       await wrapZafClient(this.zafClient, "${api}:sharedWith.hide"); 
+                      }`)
+                  );
+                });
+                it("should chain together invoke calls using dot syntax for integers", async () => {
+                  writeFixtureSrc(`foo: function() {
+                    this.${api}(0).hide();
+                   }`);
+                  await subject(options);
+                  expect(readMigratedSrc()).to.have.string(
+                    wrapExpectedSrc(`foo: async function() {
+                       await wrapZafClient(this.zafClient, "${api}.0.hide"); 
+                      }`)
                   );
                 });
               });
