@@ -15,14 +15,14 @@ export default async (options: Map<string, any>) => {
     const v1Files: string[] = sync("/*", {
       dot: true,
       root: `${src}`,
-      ignore: [`${src}/v2/**`, `${src}/v2`, `${src}/**/.git*/**`]
+      ignore: [`${src}/v2/**`, `${src}/v2`, `${src}/v1`, `${src}/**/.git*/**`]
     });
     // Create the v1 directory
     mkdir("-p", `${src}/v1`);
     // Move all the v1 files across to the backup directory
     mv(v1Files, `${src}/v1/`);
     // Move the v2 files to the root directory
-    mv("-n", `${src}/v2/*`, `${src}/`);
+    mv("-n", [`${src}/v2/*`, `${src}/v2/.[!.]*`], `${src}/`);
     // Remove the old v2 directory
     rm("-fR", `${src}/v2`);
     // Set the new dest on to options so that scripts will
